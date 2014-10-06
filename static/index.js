@@ -21,9 +21,11 @@ $(document).ready(function() {
     $('#domain-check-result .domain-availability').html(result.availability);
 
     if (result.availability === 'available') {
+      $(".check-result-icon").addClass('glyphicon').addClass('glyphicon-ok');
       $('#domain-registration').show();
 
       $('#search-again-link').on("click", function(evt) {
+        $('#domain-name').val("");
         $('#new-domain').show();
 
         $('#domain-registration').hide();

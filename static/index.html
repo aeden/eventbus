@@ -1,6 +1,13 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
   <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Domain Registration</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="index.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
     <script src="eventbus.js"></script>
     <script>
@@ -9,58 +16,62 @@
     </script>
   </head>
   <body>
-    <form id="new-domain" action="">
-      <div>
-        <label>Name</label>
-        <input id="domain-name" />
-      </div>
-      <div>
-        <button>Next</button>
-      </div>
-    </form>
+    <div class="container">
 
-    <!-- shown when a domain is being checked for availability -->
-    <div id="checking-domain" style="display: none">
-      Checking <span class="domain-name">example.com</span>...
-    </div>
-
-    <!-- shown when the check result is provided -->
-    <div id="domain-check-result" style="display: none">
-      <span class="domain-name">example.com</span> is <span class="domain-availability">not available</span>.
-    </div>
-
-    <!-- shown if the domain is available -->
-    <div id="domain-registration" style="display: none">
-      <form id="register-domain" action="">
-        <fieldset>
-          <div class="fieldset-header">Registrant details</div>
-          <div>
-            <label>Name</label>
-            <input id="registrant-name" />
-          </div>
-          <div>
-            <label>Address</label>
-            <input id="registrant-address" />
-          </div>
-          <div>
-            <label>City</label>
-            <input id="registrant-city" />
-          </div>
-          <div>
-            <label>State or Province</label>
-            <input id="registrant-state-or-province" />
-          </div>
-          <div>
-            <label>Country</label>
-            <input id="registrant-country" />
-          </div>
-        </fieldset>
-
-        <div>
-          <button>Register</button>
-          <a href="#" id="search-again-link">Search Again</a>
+      <!-- shown on initial request -->
+      <form id="new-domain" class="form-inline" role="form">
+        <div class="form-group">
+          <label for="domain-name">Name</label>
+          <input id="domain-name" class="form-control" required autofocus placeholder="example.com" />
         </div>
+
+        <button class="btn btn-primary">Next</button>
       </form>
+
+      <!-- shown when a domain is being checked for availability -->
+      <div id="checking-domain" style="display: none">
+        Checking <span class="domain-name">example.com</span>...
+      </div>
+
+      <!-- shown when the check result is provided -->
+      <div id="domain-check-result" style="display: none">
+        <p><span class="check-result-icon"></span> <span class="domain-name">example.com</span> is <span class="domain-availability">not available</span>.</p>
+      </div>
+
+      <!-- shown if the domain is available -->
+      <div id="domain-registration" style="display: none">
+        <form id="register-domain">
+          <fieldset>
+            <div class="fieldset-header">Registrant details</div>
+            <div class="form-group">
+              <label for="registrant-name">Name</label>
+              <input id="registrant-name" class="form-control" />
+            </div>
+            <div class="form-group">
+              <label for="registrant-address">Address</label>
+              <input id="registrant-address" class="form-control" />
+            </div>
+            <div class="form-group">
+              <label for="registrant-city">City</label>
+              <input id="registrant-city" class="form-control" />
+            </div>
+            <div class="form-group">
+              <label for="registrant-state-or-province">State or Province</label>
+              <input id="registrant-state-or-province" class="form-control" />
+            </div>
+            <div class="form-group">
+              <label for="registrant-country">Country</label>
+              <input id="registrant-country" class="form-control" />
+            </div>
+          </fieldset>
+
+          <div>
+            <button class="btn btn-primary">Register</button>
+            <a href="#" id="search-again-link" class="btn btn-default">Search Again</a>
+          </div>
+        </form>
+      </div>
+
     </div>
 
     <script src="index.js"></script> 

@@ -1,0 +1,13 @@
+body {
+  padding-top: 40px;
+  background-color: #eee;
+}
+
+.domain-name {
+  font-weight: bold;
+}
+
+.fieldset-header {
+  font-weight: bold;
+  font-size: larger;
+}
