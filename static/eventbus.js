@@ -1,29 +1,31 @@
-var EventBus = {};
+var EventBus = {
+  logging: true,
+  remote: null
+};
 
-EventBus.url = function(url) {
-  EventBus.remote = url
-}
-
-EventBus.run = function() {
+// This runs the EventBus websocket client
+EventBus.run = function(source) {
   if (window["WebSocket"]) {
     conn = new WebSocket("ws://localhost:3000/ws");
     conn.onclose = function(evt) {
-      console.log("Connection closed.");
+      EventBus.log("Connection closed.");
     }
     conn.onmessage = function(evt) {
-      console.log("Received event from EventBus");
-      console.log(evt.data);
+      EventBus.log("Received event from EventBus");
+      eventData = JSON.parse(evt.data);
+      EventBus.log(eventData.data);
+      source.trigger(eventData.name, eventData.data);
     }
   } else {
-    console.log("Your browser does not support WebSockets.");
+    EventBus.log("WebSockets not supported");
   }
 }
 
 // This sends the invent locally and to the remote event bus.
 EventBus.send = function(source, eventName, data) {
   source.trigger(eventName, data);
-  console.log("Sending to remote event bus: " + EventBus.remote);
-  console.log(eventName, data);
+  EventBus.log("Sending to remote event bus: " + EventBus.remote);
+  EventBus.log(eventName, data);
   jQuery.ajax({
     method: 'post',
     url: EventBus.remote,
@@ -38,4 +40,10 @@ EventBus.send = function(source, eventName, data) {
 // This registers a listener.
 EventBus.listen = function(source, events, data, handler) {
   source.on(events, null, data, handler); 
+}
+
+EventBus.log = function(objects) {
+  if (EventBus.logging) {
+    console.log(objects);
+  }
 }

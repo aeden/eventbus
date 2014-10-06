@@ -4,7 +4,8 @@
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
     <script src="eventbus.js"></script>
     <script>
-      EventBus.url("http://localhost:3001");
+      EventBus.remote = "http://localhost:3001";
+      EventBus.logging = false;
     </script>
   </head>
   <body>
