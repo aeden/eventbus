@@ -18,22 +18,31 @@ EM.run do
 
     case event['name']
     when 'check-domain'
+      # Normally this is the part where we'd check the domain name at the specific
+      # registry to see if it is available. Sleep for 1 second to simulate.
       sleep(1)
+
       results = event['data'].map do |domain_name|
         {name: domain_name, availability: 'available'}
       end
+
       message = JSON.generate({name: 'check-domain-completed', data: results})
-      ws.send message
+      ws.send(message)
     when 'register-domain'
       received_data = event['data']
+
+      # Normally this is the part where we'd register the domain name at the specific
+      # registry. Sleep for 2 seconds to simulate.
       sleep(2)
+
       results = {
         name: received_data['name'],
         registered: true,
         expiration: (Date.today + 365).rfc3339
       }
+
       message = JSON.generate({name: 'register-domain-completed', data: results})
-      ws.send message
+      ws.send(message)
     end
   end
 
