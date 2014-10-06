@@ -2,6 +2,7 @@
 
 require 'websocket-eventmachine-client'
 require 'json'
+require 'date'
 
 EM.run do
 
@@ -16,11 +17,22 @@ EM.run do
     event = JSON.parse(msg)
 
     case event['name']
-    when 'check.domain'
+    when 'check-domain'
+      sleep(1)
       results = event['data'].map do |domain_name|
         {name: domain_name, availability: 'available'}
       end
-      message = JSON.generate({name: 'check.domain.result', data: results})
+      message = JSON.generate({name: 'check-domain-completed', data: results})
+      ws.send message
+    when 'register-domain'
+      received_data = event['data']
+      sleep(2)
+      results = {
+        name: received_data['name'],
+        registered: true,
+        expiration: (Date.today + 365).rfc3339
+      }
+      message = JSON.generate({name: 'register-domain-completed', data: results})
       ws.send message
     end
   end

@@ -11,9 +11,9 @@ EventBus.run = function(source) {
       EventBus.log("Connection closed.");
     }
     conn.onmessage = function(evt) {
-      EventBus.log("Received event from EventBus");
+      EventBus.log("Received event from web socket");
+      EventBus.log(evt);
       eventData = JSON.parse(evt.data);
-      EventBus.log(eventData.data);
       source.trigger(eventData.name, eventData.data);
     }
   } else {
@@ -24,8 +24,7 @@ EventBus.run = function(source) {
 // This sends the invent locally and to the remote event bus.
 EventBus.send = function(source, eventName, data) {
   source.trigger(eventName, data);
-  EventBus.log("Sending to remote event bus: " + EventBus.remote);
-  EventBus.log(eventName, data);
+  EventBus.log("Sending " + eventName + " event to remote event bus: " + EventBus.remote);
   jQuery.ajax({
     method: 'post',
     url: EventBus.remote,

@@ -52,6 +52,8 @@
         <p>To register the domain, please enter your contact and payment details below.</p>
 
         <form id="register-domain" role="form">
+          <input name="name" id="domain-name-field" type="hidden" />
+
           <fieldset>
             <div class="fieldset-header">Registrant details</div>
             <div class="form-group">
@@ -98,6 +100,16 @@
             <a href="#" id="search-again-link" class="btn btn-default">Search Again</a>
           </div>
         </form>
+      </div>
+
+      <!-- shown when the domain is being registered -->
+      <div id="registering-domain" class="hidden">
+        Registering <span class="domain-name">example.com</span>...
+      </div>
+
+      <!-- shown when the domain is registered -->
+      <div id="domain-registered" class="hidden alert alert-success">
+        <span class="glyphicon glyphicon-ok"></span> The domain <span class="domain-name">example.com</span> was successfully registered.
       </div>
 
     </div>
