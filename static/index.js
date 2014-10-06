@@ -36,11 +36,13 @@ $(document).ready(function() {
     $('#registering-domain').removeClass('hidden');
   });
 
+  // EventBus event that occurs when the domain registration is completed
   EventBus.listen(App, 'register-domain-completed', function(evt, result) {
     EventBus.log("Received registration completed");
     EventBus.log(result);
     if (result.registered) {
       $('#domain-registered').removeClass('hidden');
+      $('#domain-registered-details').removeClass('hidden');
       $('#registering-domain').addClass('hidden');
     }
   });
@@ -59,12 +61,14 @@ $(document).ready(function() {
   });
 
   // Search again
-  $('#search-again-link').on("click", function(evt) {
+  $('.new-domain-search').on("click", function(evt) {
     $('#domain-name').val("");
     $('#new-domain').removeClass("hidden");
 
     $('#domain-registration').addClass("hidden");
     $('#domain-check-result').addClass("hidden");
+    $('#domain-registered').addClass("hidden");
+    $('#domain-registered-details').addClass("hidden");
   });
 
 });

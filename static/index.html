@@ -97,7 +97,7 @@
 
           <div>
             <button class="btn btn-primary">Register</button>
-            <a href="#" id="search-again-link" class="btn btn-default">Search Again</a>
+            <a href="#" class="btn btn-default new-domain-search">Search Again</a>
           </div>
         </form>
       </div>
@@ -110,6 +110,13 @@
       <!-- shown when the domain is registered -->
       <div id="domain-registered" class="hidden alert alert-success">
         <span class="glyphicon glyphicon-ok"></span> The domain <span class="domain-name">example.com</span> was successfully registered.
+      </div>
+
+      <div id="domain-registered-details" class="hidden">
+        <p>The domain name <span class="domain-name">example.com</span> is now registered on your behalf.</p>
+        <div>
+          <a href="#" class="btn btn-default new-domain-search">Search Again</a>
+        </div>
       </div>
 
     </div>
