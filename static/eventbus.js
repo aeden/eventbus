@@ -21,7 +21,7 @@ EventBus.run = function(source) {
   }
 }
 
-// This sends the invent locally and to the remote event bus.
+// This sends the event locally and to the remote event bus.
 EventBus.send = function(source, eventName, data) {
   source.trigger(eventName, data);
   EventBus.log("Sending " + eventName + " event to remote event bus: " + EventBus.remote);
