@@ -19,8 +19,48 @@
       </div>
     </form>
 
+    <!-- shown when a domain is being checked for availability -->
     <div id="checking-domain" style="display: none">
       Checking <span class="domain-name">example.com</span>...
+    </div>
+
+    <!-- shown when the check result is provided -->
+    <div id="domain-check-result" style="display: none">
+      <span class="domain-name">example.com</span> is <span class="domain-availability">not available</span>.
+    </div>
+
+    <!-- shown if the domain is available -->
+    <div id="domain-registration" style="display: none">
+      <form id="register-domain" action="">
+        <fieldset>
+          <div class="fieldset-header">Registrant details</div>
+          <div>
+            <label>Name</label>
+            <input id="registrant-name" />
+          </div>
+          <div>
+            <label>Address</label>
+            <input id="registrant-address" />
+          </div>
+          <div>
+            <label>City</label>
+            <input id="registrant-city" />
+          </div>
+          <div>
+            <label>State or Province</label>
+            <input id="registrant-state-or-province" />
+          </div>
+          <div>
+            <label>Country</label>
+            <input id="registrant-country" />
+          </div>
+        </fieldset>
+
+        <div>
+          <button>Register</button>
+          <a href="#" id="search-again-link">Search Again</a>
+        </div>
+      </form>
     </div>
 
     <script src="index.js"></script> 
