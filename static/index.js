@@ -5,11 +5,14 @@ $(document).ready(function() {
   // This is the App object. It is wrapped for jQuery
   var App = $({});
 
+  // Run the EventBus application
+  EventBus.run();
+
   // This is an app-specific event listener. It's job is to update the UI
   EventBus.listen(App, 'check.domain', function(evt, domainName) {
     console.log(domainName);
     $('#new-domain').hide();
-    
+
     $('#checking-domain .domain-name').html(domainName);
     $('#checking-domain').show();
   });
@@ -19,5 +22,6 @@ $(document).ready(function() {
   $('#new-domain').on("submit", function(evt) {
     evt.preventDefault();
     EventBus.send(App, 'check.domain', [$("#domain-name").val()]);
-  });
+  }); 
+
 });

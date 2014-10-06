@@ -3,25 +3,17 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/aeden/eventbus"
 	"log"
 	"net/http"
 	"time"
 )
 
-type Event struct {
-	Name string
-	Data interface{}
-}
-
-func NewEvent() *Event {
-	return &Event{}
-}
-
 // HTTP handler for EventBus HTTP requests
 func eventBusRequestHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
-		log.Printf("Received request: %s", r.RequestURI)
-		event := NewEvent()
+		log.Printf("Received request from %s", r.RemoteAddr)
+		event := eventbus.NewEvent()
 
 		decoder := json.NewDecoder(r.Body)
 		err := decoder.Decode(&event)
@@ -29,7 +21,8 @@ func eventBusRequestHandler(w http.ResponseWriter, r *http.Request) {
 			log.Printf("Parser error: %s", err)
 			http.Error(w, fmt.Sprintf("Parser error: %s", err), 500)
 		} else {
-                       w.WriteHeader(http.StatusOK)
+			w.WriteHeader(http.StatusOK)
+			eventbus.Notify(event)
 		}
 
 	} else if r.Method == "OPTIONS" {
@@ -45,6 +38,7 @@ func startFileServer(hostAndPort string, corsHostAndPort string) {
 
 	mux := http.NewServeMux()
 	mux.Handle("/", corsServer(corsHostAndPort, http.FileServer(http.Dir("static"))))
+	mux.Handle("/ws", http.HandlerFunc(eventbus.WebsocketHandler))
 	server := &http.Server{
 		Addr:    hostAndPort,
 		Handler: mux,
@@ -92,6 +86,8 @@ func (server *corsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func main() {
 	staticHostAndPort := "localhost:3000"
 	eventBusHostAndPort := "localhost:3001"
+
+	eventbus.StartWebsocketHub()
 
 	go startFileServer(staticHostAndPort, eventBusHostAndPort)
 	startEventBusServer(eventBusHostAndPort, staticHostAndPort)
