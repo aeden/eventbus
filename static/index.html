@@ -4,15 +4,22 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <title>Domain Registration</title>
+
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="index.css">
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+
+    <script src="lib/jquery.serialize-object.min.js"></script>
+
     <script src="eventbus.js"></script>
+
     <script>
       EventBus.remote = "http://localhost:3001";
-      EventBus.logging = false;
+      EventBus.logging = true;
     </script>
   </head>
   <body>
@@ -20,48 +27,69 @@
 
       <!-- shown on initial request -->
       <form id="new-domain" class="form-inline" role="form">
+        <p>Enter a domain name and check if it is available for registration.</p>
+
         <div class="form-group">
           <label for="domain-name">Name</label>
           <input id="domain-name" class="form-control" required autofocus placeholder="example.com" />
         </div>
 
-        <button class="btn btn-primary">Next</button>
+        <button class="btn btn-primary">Check Availability</button>
       </form>
 
       <!-- shown when a domain is being checked for availability -->
-      <div id="checking-domain" style="display: none">
+      <div id="checking-domain" class="hidden">
         Checking <span class="domain-name">example.com</span>...
       </div>
 
       <!-- shown when the check result is provided -->
-      <div id="domain-check-result" style="display: none">
-        <p><span class="check-result-icon"></span> <span class="domain-name">example.com</span> is <span class="domain-availability">not available</span>.</p>
+      <div id="domain-check-result" class="check-result alert hidden">
+        <span class="check-result-icon"></span> <span class="domain-name">example.com</span> is <span class="domain-availability">not available</span>.
       </div>
 
       <!-- shown if the domain is available -->
-      <div id="domain-registration" style="display: none">
-        <form id="register-domain">
+      <div id="domain-registration" class="hidden"> 
+        <p>To register the domain, please enter your contact and payment details below.</p>
+
+        <form id="register-domain" role="form">
           <fieldset>
             <div class="fieldset-header">Registrant details</div>
             <div class="form-group">
               <label for="registrant-name">Name</label>
-              <input id="registrant-name" class="form-control" />
+              <input name="registrant[name]" class="form-control" />
             </div>
             <div class="form-group">
               <label for="registrant-address">Address</label>
-              <input id="registrant-address" class="form-control" />
+              <input name="registrant[address]" class="form-control" />
             </div>
             <div class="form-group">
               <label for="registrant-city">City</label>
-              <input id="registrant-city" class="form-control" />
+              <input name="registrant[city]" class="form-control" />
             </div>
             <div class="form-group">
               <label for="registrant-state-or-province">State or Province</label>
-              <input id="registrant-state-or-province" class="form-control" />
+              <input name="registrant[state]" class="form-control" />
             </div>
             <div class="form-group">
               <label for="registrant-country">Country</label>
-              <input id="registrant-country" class="form-control" />
+              <input name="registrant[country]" class="form-control" />
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <div class="fieldset-header">Options</div>
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" name="options[autorenew]" checked />
+                Enable auto-renewal
+              </label>
+            </div>
+
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" name="options[whoisprivacy]" />
+                Enable whois privacy
+              </label>
             </div>
           </fieldset>
 
