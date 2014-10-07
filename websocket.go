@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/gorilla/websocket"
 	"log"
-	"math/rand"
 	"net/http"
 )
 
@@ -203,14 +202,4 @@ func WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 
 func StartWebsocketHub() {
 	go WebsocketHub.run()
-}
-
-var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-
-func randSeq(n int) string {
-	b := make([]rune, n)
-	for i := range b {
-		b[i] = letters[rand.Intn(len(letters))]
-	}
-	return string(b)
 }
