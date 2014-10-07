@@ -68,7 +68,7 @@ func (h *wsHub) Send(message []byte) {
 func (h *wsHub) SendToClient(clientAccessToken string, message []byte) {
 	for c, cs := range h.connections {
 		if cs.Token == clientAccessToken {
-			h.SendToConnection(c, message)
+			h.sendToConnection(c, message)
 			return
 		}
 	}
@@ -78,12 +78,13 @@ func (h *wsHub) SendToClient(clientAccessToken string, message []byte) {
 func (h *wsHub) SendToServices(message []byte) {
 	for c, cs := range h.connections {
 		if cs.ClientType == "service" {
-			h.SendToConnection(c, message)
+			h.sendToConnection(c, message)
 		}
 	}
 }
 
-func (h *wsHub) SendToConnection(c *wsConnection, m []byte) {
+// Send the message to the specific connection
+func (h *wsHub) sendToConnection(c *wsConnection, m []byte) {
 	select {
 	case c.send <- m:
 	default:
@@ -106,9 +107,8 @@ func (h *wsHub) run() {
 				close(c.send)
 			}
 		case m := <-h.broadcast:
-			log.Printf("Broadcast message: %s", m)
 			for c := range h.connections {
-				h.SendToConnection(c, m)
+				h.sendToConnection(c, m)
 			}
 		}
 	}
@@ -123,8 +123,6 @@ func (c *wsConnection) reader() {
 		}
 		log.Printf("Message received: %s", message)
 
-		// Right now this only handles a single command: identify.
-
 		command := &wsCommand{}
 		json.Unmarshal(message, command)
 		log.Printf("Command received: %s", command.Action)
@@ -133,7 +131,6 @@ func (c *wsConnection) reader() {
 			connectionState := WebsocketHub.connections[c]
 			connectionState.Token = randSeq(16)
 			connectionState.ClientType = "client"
-			log.Printf("Connection state: %s", connectionState)
 
 			response := &wsIdentifyCommandResponse{
 				Action: command.Action,
@@ -144,7 +141,8 @@ func (c *wsConnection) reader() {
 				log.Printf("Error marshaling response JSON: %s", err)
 				continue
 			}
-			c.ws.WriteMessage(websocket.TextMessage, responseJSON)
+
+			WebsocketHub.sendToConnection(c, responseJSON)
 		} else if command.Action == "authenticate" {
 			connectionState := WebsocketHub.connections[c]
 			connectionState.ClientType = "service"
@@ -157,7 +155,7 @@ func (c *wsConnection) reader() {
 				log.Printf("Error marshaling response JSON: %s", err)
 				continue
 			}
-			c.ws.WriteMessage(websocket.TextMessage, responseJSON)
+			WebsocketHub.sendToConnection(c, responseJSON)
 		} else {
 			response := &wsCommandErrorResponse{
 				Action:       command.Action,
@@ -168,7 +166,7 @@ func (c *wsConnection) reader() {
 				log.Printf("Error marshaling response JSON: %s", err)
 				continue
 			}
-			c.ws.WriteMessage(websocket.TextMessage, responseJSON)
+			WebsocketHub.sendToConnection(c, responseJSON)
 		}
 	}
 	c.ws.Close()

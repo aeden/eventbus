@@ -19,16 +19,15 @@ func eventBusRequestHandler(w http.ResponseWriter, r *http.Request) {
 			log.Printf("Parser error: %s", err)
 			http.Error(w, fmt.Sprintf("Parser error: %s", err), 500)
 		} else {
-			log.Printf("Event context: %s", event.Context)
-
 			// The event should be persisted here
 
 			// If the event was successfully persisted, return OK
 			w.WriteHeader(http.StatusOK)
 
+                        // Send the event to a specific client if the access token
+                        // is present
 			clientAccessToken := event.Context["access_token"]
 			if clientAccessToken != "" {
-				log.Printf("Send event to a specific client with access token: %s", clientAccessToken)
 				NotifyClient(clientAccessToken, event)
 			}
 
