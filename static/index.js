@@ -2,6 +2,7 @@ $(document).ready(function() {
   // This is the App object. It is wrapped for jQuery
   var App = $({});
 
+  // These are components on the page
   App.components = [
     $('#domain-new'),
     $('#checking-domain'),
@@ -11,12 +12,17 @@ $(document).ready(function() {
     $('#domain-registered')
   ];
 
+  // show one component, hide the others
   App.show = function(element) {
     $.each(App.components, function(index, component) {
       component.addClass("hidden");
     });
     element.removeClass("hidden");
   }
+
+  /*------------------------------*
+   * Start the EventBus setup     *
+   *------------------------------*/
 
   // Connect the application to the EventBus
   EventBus.connect(App);
