@@ -6,8 +6,9 @@ import (
 )
 
 type Event struct {
-	Name string      `json:"name"`
-	Data interface{} `json:"data"`
+	Name    string      `json:"name"`
+	Data    interface{} `json:"data"`
+	Context interface{} `json:"context"`
 }
 
 func NewEvent() *Event {

@@ -3,7 +3,23 @@
 require 'websocket-eventmachine-client'
 require 'json'
 require 'date'
+require 'net/http'
 
+EVENT_BUS_SERVER_URL = URI('http://localhost:3001')
+WEBSOCKET_URI = 'ws://localhost:3000/ws'
+
+# Create a new event in the EventBus.
+def deliver(message)
+  Net::HTTP.start(EVENT_BUS_SERVER_URL.host, EVENT_BUS_SERVER_URL.port) do |http|
+    request = Net::HTTP::Post.new EVENT_BUS_SERVER_URL
+    request.body = message
+    request.content_type = "application/json"
+    response = http.request request # Net::HTTPResponse object
+    puts response.inspect
+  end
+end
+
+# Connect to the websocket server and respond to inbound websocket messages.
 def connect(connect_delay = 0)
   if connect_delay > 20
     raise "Max connection attempts reached"
@@ -15,7 +31,7 @@ def connect(connect_delay = 0)
   end
 
   puts "Opening websocket connection"
-  ws = WebSocket::EventMachine::Client.connect(:uri => 'ws://localhost:3000/ws')
+  ws = WebSocket::EventMachine::Client.connect(:uri => WEBSOCKET_URI)
 
   ws.onopen do
     puts "Connected"
@@ -36,8 +52,8 @@ def connect(connect_delay = 0)
         {name: domain_name, availability: 'available'}
       end
 
-      message = JSON.generate({name: 'check-domain-completed', data: results})
-      ws.send(message)
+      message = JSON.generate({name: 'check-domain-completed', data: results, context: event['context']})
+      deliver(message)
     when 'register-domain'
       received_data = event['data']
 
@@ -51,8 +67,8 @@ def connect(connect_delay = 0)
         expiration: (Date.today + 365).rfc3339
       }
 
-      message = JSON.generate({name: 'register-domain-completed', data: results})
-      ws.send(message)
+      message = JSON.generate({name: 'register-domain-completed', data: results, context: event['context']})
+      deliver(message)
     end
   end
 
@@ -62,6 +78,7 @@ def connect(connect_delay = 0)
   end
 end
 
+# Run EventMachine
 EM.run do
   connect
 end

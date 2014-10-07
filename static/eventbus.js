@@ -1,7 +1,8 @@
 var EventBus = {
   logging: true,
   websocket_url: null,
-  eventbus_url: null
+  eventbus_url: null,
+  context: {}
 };
 
 // This runs the EventBus websocket client
@@ -10,6 +11,7 @@ EventBus.connect = function(source) {
     conn = new WebSocket(EventBus.websocket_url);
     conn.onopen = function(evt) {
       EventBus.log("Connection opened");
+      conn.send(JSON.stringify({action: "identify"}))
     }
     conn.onclose = function(evt) {
       EventBus.log("Connection closed");
@@ -18,7 +20,13 @@ EventBus.connect = function(source) {
       EventBus.log("Received event from web socket");
       EventBus.log(evt);
       eventData = JSON.parse(evt.data);
-      source.trigger(eventData.name, eventData.data);
+      if (eventData['action']) {
+        EventBus.log("Web socket message was an action");
+        EventBus.context['access_token'] = eventData.token;
+      } else {
+        EventBus.log("Web socket message was an event");
+        source.trigger(eventData.name, eventData.data);
+      }
     }
   } else {
     EventBus.log("WebSockets not supported");
@@ -35,6 +43,7 @@ EventBus.send = function(source, eventName, data) {
     dataType: 'json',
     data: JSON.stringify({
       name: eventName,
+      context: EventBus.context,
       data: data
     })
   });
