@@ -6,16 +6,22 @@ var EventBus = {
 };
 
 // This runs the EventBus websocket client
-EventBus.connect = function(source) {
+EventBus.connect = function(source, count) {
+  if(typeof(count) === 'undefined') { count = 0 }
+  EventBus.log("Retry count: " + count);
   if (window["WebSocket"]) {
     conn = new WebSocket(EventBus.websocket_url);
+
     conn.onopen = function(evt) {
       EventBus.log("Connection opened");
       conn.send(JSON.stringify({action: "identify"}))
     }
+
     conn.onclose = function(evt) {
       EventBus.log("Connection closed");
+      setTimeout(function() { EventBus.connect(source, count + 1) }, (count + 1) * 1000);
     }
+
     conn.onmessage = function(evt) {
       EventBus.log("Received event from web socket");
       EventBus.log(evt);

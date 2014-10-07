@@ -26,6 +26,8 @@ Events must include the client identifier in the event context using the key `id
 
 Services are listeners that can handle events and execute work.
 
+A service must include an authorization token on each request.
+
 # Running
 
 Install Foreman.
