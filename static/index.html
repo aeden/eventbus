@@ -27,16 +27,18 @@
     <div class="container">
 
       <!-- shown on initial request -->
-      <form id="new-domain" class="form-inline" role="form">
-        <p>Enter a domain name and check if it is available for registration.</p>
+      <div id="domain-new">
+        <form id="new-domain" class="form-inline" role="form">
+          <p>Enter a domain name and check if it is available for registration.</p>
 
-        <div class="form-group">
-          <label for="domain-name">Name</label>
-          <input id="domain-name" class="form-control" required autofocus placeholder="example.com" />
-        </div>
+          <div class="form-group">
+            <label for="domain-name">Name</label>
+            <input id="domain-name" class="form-control" required autofocus placeholder="example.com" />
+          </div>
 
-        <button class="btn btn-primary">Check Availability</button>
-      </form>
+          <button class="btn btn-primary">Check Availability</button>
+        </form>
+      </div>
 
       <!-- shown when a domain is being checked for availability -->
       <div id="checking-domain" class="hidden">

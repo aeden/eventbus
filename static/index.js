@@ -2,13 +2,14 @@ $(document).ready(function() {
   // This is the App object. It is wrapped for jQuery
   var App = $({});
 
-  App.components = [];
-  App.components.push($('#new-domain'));
-  App.components.push($('#checking-domain'));
-  App.components.push($('#domain-check-result'));
-  App.components.push($('#domain-registration'));
-  App.components.push($('#registering-domain'));
-  App.components.push($('#domain-registered'));
+  App.components = [
+    $('#domain-new'),
+    $('#checking-domain'),
+    $('#domain-check-result'),
+    $('#domain-registration'),
+    $('#registering-domain'),
+    $('#domain-registered')
+  ];
 
   App.show = function(element) {
     $.each(App.components, function(index, component) {
@@ -45,8 +46,6 @@ $(document).ready(function() {
 
   // EventBus event that occurs when the domain registration is completed
   EventBus.listen(App, 'register-domain-completed', function(evt, result) {
-    EventBus.log("Received registration completed");
-    EventBus.log(result);
     if (result.registered) {
       App.show($('#domain-registered'));
     }
@@ -67,8 +66,9 @@ $(document).ready(function() {
 
   // Search again
   $('.new-domain-search').on("click", function(evt) {
+    evt.preventDefault();
     $('#domain-name').val("");
-    App.show($('#new-domain'));
+    App.show($('#domain-new'));
   });
 
 });
