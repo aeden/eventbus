@@ -1,8 +1,8 @@
 package eventbus
 
 import (
-  "net/http"
-  "fmt"
+	"fmt"
+	"net/http"
 )
 
 // CORS handling middleware
@@ -11,15 +11,30 @@ type CorsHandler struct {
 	delegate        http.Handler
 }
 
-func CorsServer(corsHostAndPort string, handler http.Handler) http.Handler {
+func NewCorsHandler(corsHostAndPort string, handler http.Handler) http.Handler {
 	return &CorsHandler{
 		corsHostAndPort: corsHostAndPort,
 		delegate:        handler,
 	}
 }
 
-func (server *CorsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", fmt.Sprintf("http://%s", server.corsHostAndPort))
+func (handler *CorsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", fmt.Sprintf("http://%s", handler.corsHostAndPort))
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-	server.delegate.ServeHTTP(w, r)
+	handler.delegate.ServeHTTP(w, r)
+}
+
+// Authentication middleware
+type AuthenticationHandler struct {
+	delegate http.Handler
+}
+
+func NewAuthenticationHandler(handler http.Handler) http.Handler {
+	return &AuthenticationHandler{
+		delegate: handler,
+	}
+}
+
+func (handler *AuthenticationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	handler.delegate.ServeHTTP(w, r)
 }
