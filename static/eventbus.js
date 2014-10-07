@@ -1,12 +1,13 @@
 var EventBus = {
   logging: true,
-  remote: null
+  websocket_url: null,
+  eventbus_url: null
 };
 
 // This runs the EventBus websocket client
 EventBus.run = function(source) {
   if (window["WebSocket"]) {
-    conn = new WebSocket("ws://localhost:3000/ws");
+    conn = new WebSocket(websocket_url);
     conn.onclose = function(evt) {
       EventBus.log("Connection closed.");
     }
@@ -24,7 +25,7 @@ EventBus.run = function(source) {
 // This sends the event locally and to the remote event bus.
 EventBus.send = function(source, eventName, data) {
   source.trigger(eventName, data);
-  EventBus.log("Sending " + eventName + " event to remote event bus: " + EventBus.remote);
+  EventBus.log("Sending " + eventName + " event to remote event bus: " + EventBus.eventbus_url);
   jQuery.ajax({
     method: 'post',
     url: EventBus.remote,
