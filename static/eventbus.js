@@ -8,8 +8,11 @@ var EventBus = {
 EventBus.connect = function(source) {
   if (window["WebSocket"]) {
     conn = new WebSocket(EventBus.websocket_url);
+    conn.onopen = function(evt) {
+      EventBus.log("Connection opened");
+    }
     conn.onclose = function(evt) {
-      EventBus.log("Connection closed.");
+      EventBus.log("Connection closed");
     }
     conn.onmessage = function(evt) {
       EventBus.log("Received event from web socket");
