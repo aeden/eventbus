@@ -5,16 +5,6 @@ import (
 	"log"
 )
 
-type Event struct {
-	Name    string            `json:"name"`
-	Data    interface{}       `json:"data"`
-	Context map[string]string `json:"context"`
-}
-
-func NewEvent() *Event {
-	return &Event{}
-}
-
 func Notify(event *Event) {
 	eventJSON, err := json.Marshal(event)
 	if err != nil {

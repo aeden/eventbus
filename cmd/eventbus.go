@@ -30,12 +30,14 @@ func loadServicesConfig() *eventbus.ServicesConfig {
 func main() {
 	servicesConfig := loadServicesConfig()
 
+	eventStore := eventbus.NewInMemoryEventStore()
+
 	fileServerHostAndPort := net.JoinHostPort(fileServerHost, fileServerPort)
 	eventBusHostAndPort := net.JoinHostPort(eventBusServerHost, eventBusServerPort)
 
 	eventbus.StartWebsocketHub()
 
 	go eventbus.StartFileServer(fileServerHostAndPort, eventBusHostAndPort)
-	eventbus.StartEventBusServer(eventBusHostAndPort, fileServerHostAndPort, servicesConfig)
+	eventbus.StartEventBusServer(eventBusHostAndPort, fileServerHostAndPort, servicesConfig, eventStore)
 
 }
