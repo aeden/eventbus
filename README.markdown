@@ -1,12 +1,14 @@
 # Overview
 
+The puropose of this project is to provide an event bus that can be used from within web browsers via JavaScript as well as from applications in other languages. Events are added to the bus using an HTTP end point and then are distributed to attached listeners via WebSockets.
+
 ## Frontend
 
-The front end is HTML and JavaScript. It relies solely on events as the mechanism for dealing with input and output. For example, a form is filled in an the submit button is pressed. This results in an event. Events are sent to local listeners to update the UI as well as to a remote event bus for any additional processing. When a listener on the remote event bus handles the event it will fire a new event, directed towards the client's event bus (via websockets) where a listener handles the event and updates the UI. 
+The front end is HTML and JavaScript. It relies solely on events as the mechanism for dealing with input and output. For example, a form is filled in an the submit button is pressed. This results in an event. Events are sent to local listeners to update the UI as well as to a remote event bus for any additional processing. When a listener on the remote event bus handles the event it will fire a new event, directed towards the client's event bus (via websockets) where a listener handles the event and updates the UI. Browser UI events are translated from the UI event (i.e. button clicked) to an event that is domain-specific (for example "check-domain-availability").
 
 ## Backend
 
-The backend is purely functional event handlers. A listener handles the event, perhaps firing off events to the bus, potentially handled by other listeners or the client for UI updates.
+The backend is purely functional event handlers. A listener handles the event, perhaps firing off events to the bus, potentially handled by other listeners or the client for UI updates. A backend listener could be implemented in any language as long as it can make HTTP calls and has a WebSocket library.
 
 ## Creating Events
 
@@ -56,8 +58,18 @@ Access-Control-Allow-Headers: Content-Type
 
 Where eventbus-url is replaced with the URL for the EventBus server.
 
+# Example
+
+There is an example application in the `static` directory. To see it in action, do the following:
+
+* Run the EventBus server as described above.
+* In a separate console, run the example Ruby script in `examples/ruby` using the command `foreman start` from within that directory.
+* Open your browser to [http://localhost:3000](http://localhost:3000)
+
+Your web browser must support WebSockets.
+
+The sample Ruby script uses Event Machine.
+
 # Issues
 
 * Currently the EventBus WebSocket service handles only unecrypted calls.
-* There is no authentication or authorization context.
-* All messages are routed to all clients.
