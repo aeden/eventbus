@@ -8,14 +8,21 @@ require 'net/http'
 EVENT_BUS_SERVER_URL = URI('http://localhost:3001')
 WEBSOCKET_URI = 'ws://localhost:3000/ws'
 
+def authorization
+  'token xxx'
+end
+
 # Create a new event in the EventBus.
 def deliver(message)
   Net::HTTP.start(EVENT_BUS_SERVER_URL.host, EVENT_BUS_SERVER_URL.port) do |http|
     request = Net::HTTP::Post.new EVENT_BUS_SERVER_URL
     request.body = message
     request.content_type = "application/json"
+    request["Authorization"] = authorization
     response = http.request request # Net::HTTPResponse object
     puts response.inspect
+
+    # TODO: If the response is not 200 then there needs to be retry logic
   end
 end
 
@@ -36,6 +43,7 @@ def connect(connect_delay = 0)
   ws.onopen do
     puts "Connected"
     connect_delay = 0
+    ws.send(JSON.generate({action: 'authenticate', credentials: authorization}))
   end
 
   ws.onmessage do |msg, type|
