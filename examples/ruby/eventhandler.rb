@@ -4,12 +4,22 @@ require 'websocket-eventmachine-client'
 require 'json'
 require 'date'
 
-EM.run do
+def connect(connect_delay = 0)
+  if connect_delay > 20
+    raise "Max connection attempts reached"
+  end
 
+  if connect_delay > 0
+    puts "Connecting in #{connect_delay} seconds"
+    sleep(connect_delay)
+  end
+
+  puts "Opening websocket connection"
   ws = WebSocket::EventMachine::Client.connect(:uri => 'ws://localhost:3000/ws')
 
   ws.onopen do
     puts "Connected"
+    connect_delay = 0
   end
 
   ws.onmessage do |msg, type|
@@ -48,6 +58,10 @@ EM.run do
 
   ws.onclose do |code, reason|
     puts "Disconnected with status code: #{code}"
+    connect(connect_delay + 1)
   end
+end
 
+EM.run do
+  connect
 end
