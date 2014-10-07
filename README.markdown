@@ -18,11 +18,13 @@ Events are always added to the bus using a synchronous HTTP call. A successfully
 
 Clients represent browsers or devices.
 
+A client must identify itself when the websocket connection is established. This must occur before it sends its first event.
+
+Events must include the client identifier in the event context using the key `identifier`.
+
 ### Services
 
 Services are listeners that can handle events and execute work.
-
-### Services
 
 # Running
 

@@ -22,7 +22,7 @@ EventBus.connect = function(source) {
       eventData = JSON.parse(evt.data);
       if (eventData['action']) {
         EventBus.log("Web socket message was an action");
-        EventBus.context['access_token'] = eventData.token;
+        EventBus.context['identifier'] = eventData.token;
       } else {
         EventBus.log("Web socket message was an event");
         source.trigger(eventData.name, eventData.data);

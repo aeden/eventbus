@@ -24,9 +24,9 @@ func eventBusRequestHandler(w http.ResponseWriter, r *http.Request) {
 			// If the event was successfully persisted, return OK
 			w.WriteHeader(http.StatusOK)
 
-                        // Send the event to a specific client if the access token
-                        // is present
-			clientAccessToken := event.Context["access_token"]
+			// Send the event to a specific client if the access token
+			// is present
+			clientAccessToken := event.Context["identifier"]
 			if clientAccessToken != "" {
 				NotifyClient(clientAccessToken, event)
 			}
