@@ -2,8 +2,8 @@ $(document).ready(function() {
   // This is the App object. It is wrapped for jQuery
   var App = $({});
 
-  // Run the EventBus application
-  EventBus.run(App);
+  // Connect the application to the EventBus
+  EventBus.connect(App);
 
   // This is an app-specific event listener. It's job is to update the UI
   EventBus.listen(App, 'check-domain', function(evt, domainName) {
