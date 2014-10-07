@@ -2,38 +2,45 @@ $(document).ready(function() {
   // This is the App object. It is wrapped for jQuery
   var App = $({});
 
+  App.components = [];
+  App.components.push($('#new-domain'));
+  App.components.push($('#checking-domain'));
+  App.components.push($('#domain-check-result'));
+  App.components.push($('#domain-registration'));
+  App.components.push($('#registering-domain'));
+  App.components.push($('#domain-registered'));
+
+  App.show = function(element) {
+    $.each(App.components, function(index, component) {
+      component.addClass("hidden");
+    });
+    element.removeClass("hidden");
+  }
+
   // Connect the application to the EventBus
   EventBus.connect(App);
 
   // This is an app-specific event listener. It's job is to update the UI
   EventBus.listen(App, 'check-domain', function(evt, domainName) {
-    $('#new-domain').addClass("hidden");
-
     $('.domain-name').html(domainName);
-    $('#checking-domain').removeClass("hidden");
+    App.show($('#checking-domain'));
   });
 
   // Currently this can only handle one result
   EventBus.listen(App, 'check-domain-completed', function(evt, result) {
-    $('#checking-domain').addClass("hidden");
-
     $('.domain-name').html(result.name);
-    $('#domain-check-result .domain-availability').html(result.availability);
+    $('.domain-availability').html(result.availability);
 
     if (result.availability === 'available') {
-      $(".check-result-icon").addClass('glyphicon').addClass('glyphicon-ok');
-      $(".check-result").addClass('alert-success');
       $('#domain-name-field').val(result.name);
-      $('#domain-registration').removeClass("hidden");
+      App.show($('#domain-registration'));
+    } else {
+      App.show($('#domain-check-result'));
     }
-
-    $('#domain-check-result').removeClass("hidden");
   });
 
   EventBus.listen(App, 'register-domain', function(evt, domainRegistration) {
-    $('#domain-check-result').addClass('hidden');
-    $('#domain-registration').addClass('hidden');
-    $('#registering-domain').removeClass('hidden');
+    App.show($('#registering-domain'));
   });
 
   // EventBus event that occurs when the domain registration is completed
@@ -41,9 +48,7 @@ $(document).ready(function() {
     EventBus.log("Received registration completed");
     EventBus.log(result);
     if (result.registered) {
-      $('#domain-registered').removeClass('hidden');
-      $('#domain-registered-details').removeClass('hidden');
-      $('#registering-domain').addClass('hidden');
+      App.show($('#domain-registered'));
     }
   });
 
@@ -63,12 +68,7 @@ $(document).ready(function() {
   // Search again
   $('.new-domain-search').on("click", function(evt) {
     $('#domain-name').val("");
-    $('#new-domain').removeClass("hidden");
-
-    $('#domain-registration').addClass("hidden");
-    $('#domain-check-result').addClass("hidden");
-    $('#domain-registered').addClass("hidden");
-    $('#domain-registered-details').addClass("hidden");
+    App.show($('#new-domain'));
   });
 
 });

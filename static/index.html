@@ -44,12 +44,16 @@
       </div>
 
       <!-- shown when the check result is provided -->
-      <div id="domain-check-result" class="check-result alert hidden">
+      <div id="domain-check-result" class="check-result alert alert-error hidden">
         <span class="check-result-icon"></span> <span class="domain-name">example.com</span> is <span class="domain-availability">not available</span>.
       </div>
 
       <!-- shown if the domain is available -->
-      <div id="domain-registration" class="hidden"> 
+      <div id="domain-registration" class="hidden">
+        <div class="check-result alert alert-success">
+          <span class="glyphicon glyphicon-ok"></span> <span class="domain-name">example.com</span> is <span class="domain-availability">not available</span>.
+        </div>
+
         <p>To register the domain, please enter your contact and payment details below.</p>
 
         <form id="register-domain" role="form">
@@ -109,11 +113,11 @@
       </div>
 
       <!-- shown when the domain is registered -->
-      <div id="domain-registered" class="hidden alert alert-success">
-        <span class="glyphicon glyphicon-ok"></span> The domain <span class="domain-name">example.com</span> was successfully registered.
-      </div>
+      <div id="domain-registered" class="hidden">
+        <div class="alert alert-success">
+          <span class="glyphicon glyphicon-ok"></span> The domain <span class="domain-name">example.com</span> was successfully registered.
+        </div>
 
-      <div id="domain-registered-details" class="hidden">
         <p>The domain name <span class="domain-name">example.com</span> is now registered on your behalf.</p>
         <div>
           <a href="#" class="btn btn-default new-domain-search">Search Again</a>
