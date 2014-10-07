@@ -124,7 +124,7 @@ func (h *wsHub) run() {
 func execute(command *wsCommand) {
 	if command.Action == "identify" {
 		connectionState := WebsocketHub.connections[command.source]
-		connectionState.Token = randSeq(16)
+		connectionState.Token = randSeq(60)
 		connectionState.ClientType = "client"
 
 		response := &wsIdentifyCommandResponse{
