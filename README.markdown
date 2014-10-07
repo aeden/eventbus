@@ -26,3 +26,7 @@ Access-Control-Allow-Headers: Content-Type
 ```
 
 Where eventbus-url is replaced with the URL for the EventBus server.
+
+# Security
+
+* Currently the EventBus WebSocket service handles only unecrypted calls.
