@@ -13,15 +13,27 @@ func eventBusRequestHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		log.Printf("Received request from %s", r.RemoteAddr)
 		event := NewEvent()
-
 		decoder := json.NewDecoder(r.Body)
 		err := decoder.Decode(&event)
 		if err != nil {
 			log.Printf("Parser error: %s", err)
 			http.Error(w, fmt.Sprintf("Parser error: %s", err), 500)
 		} else {
+			log.Printf("Event context: %s", event.Context)
+
+			// The event should be persisted here
+
+			// If the event was successfully persisted, return OK
 			w.WriteHeader(http.StatusOK)
-			Notify(event)
+
+			clientAccessToken := event.Context["access_token"]
+			if clientAccessToken != "" {
+				log.Printf("Send event to a specific client with access token: %s", clientAccessToken)
+				NotifyClient(clientAccessToken, event)
+			}
+
+			// Broadcast the event to services
+			NotifyServices(event)
 		}
 
 	} else if r.Method == "OPTIONS" {
@@ -36,7 +48,7 @@ func StartFileServer(hostAndPort string, corsHostAndPort string) {
 	log.Printf("Starting HTTP server on %s", hostAndPort)
 
 	mux := http.NewServeMux()
-	mux.Handle("/", NewCorsHandler(corsHostAndPort, http.FileServer(http.Dir("static"))))
+	mux.Handle("/", NewAuthorizationHandler(NewCorsHandler(corsHostAndPort, http.FileServer(http.Dir("static")))))
 	mux.Handle("/ws", http.HandlerFunc(WebsocketHandler))
 	server := &http.Server{
 		Addr:    hostAndPort,
@@ -48,7 +60,7 @@ func StartFileServer(hostAndPort string, corsHostAndPort string) {
 // Start the event bus server for handling JSON events over HTTP
 func StartEventBusServer(hostAndPort string, corsHostAndPort string) {
 	mux := http.NewServeMux()
-	mux.Handle("/", NewCorsHandler(corsHostAndPort, http.HandlerFunc(eventBusRequestHandler)))
+	mux.Handle("/", NewAuthorizationHandler(NewCorsHandler(corsHostAndPort, http.HandlerFunc(eventBusRequestHandler))))
 
 	log.Printf("Starting EventBus service on %s", hostAndPort)
 

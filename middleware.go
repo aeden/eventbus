@@ -2,6 +2,7 @@ package eventbus
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -24,17 +25,19 @@ func (handler *CorsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	handler.delegate.ServeHTTP(w, r)
 }
 
-// Authentication middleware
-type AuthenticationHandler struct {
+// Authorization middleware
+type AuthorizationHandler struct {
 	delegate http.Handler
 }
 
-func NewAuthenticationHandler(handler http.Handler) http.Handler {
-	return &AuthenticationHandler{
+func NewAuthorizationHandler(handler http.Handler) http.Handler {
+	return &AuthorizationHandler{
 		delegate: handler,
 	}
 }
 
-func (handler *AuthenticationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (handler *AuthorizationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	authorization := r.Header["Authorization"]
+	log.Printf("Authorization: %s", authorization)
 	handler.delegate.ServeHTTP(w, r)
 }
