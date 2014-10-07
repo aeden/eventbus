@@ -27,14 +27,14 @@ def deliver(message)
 end
 
 # Connect to the websocket server and respond to inbound websocket messages.
-def connect(connect_delay = 0)
-  if connect_delay > 20
+def connect(retry_count = 0)
+  if retry_count > 20
     raise "Max connection attempts reached"
   end
 
-  if connect_delay > 0
-    puts "Connecting in #{connect_delay} seconds"
-    sleep(connect_delay)
+  if retry_count > 0
+    puts "Connecting in #{retry_count} seconds"
+    sleep(retry_count)
   end
 
   puts "Opening websocket connection"
@@ -42,7 +42,7 @@ def connect(connect_delay = 0)
 
   ws.onopen do
     puts "Connected"
-    connect_delay = 0
+    retry_count = 0
     ws.send(JSON.generate({action: 'authenticate', credentials: authorization}))
   end
 
@@ -82,7 +82,7 @@ def connect(connect_delay = 0)
 
   ws.onclose do |code, reason|
     puts "Disconnected with status code: #{code}"
-    connect(connect_delay + 1)
+    connect(retry_count + 1)
   end
 end
 
