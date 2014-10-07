@@ -27,17 +27,25 @@ func (handler *CorsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // Authorization middleware
 type AuthorizationHandler struct {
-	delegate http.Handler
+	servicesConfig *ServicesConfig
+	delegate       http.Handler
 }
 
-func NewAuthorizationHandler(handler http.Handler) http.Handler {
+func NewAuthorizationHandler(servicesConfig *ServicesConfig, handler http.Handler) http.Handler {
 	return &AuthorizationHandler{
-		delegate: handler,
+		servicesConfig: servicesConfig,
 	}
 }
 
 func (handler *AuthorizationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	authorization := r.Header["Authorization"]
+	authorization := r.Header.Get("Authorization")
 	log.Printf("Authorization: %s", authorization)
+	if authorization != "" {
+		for _, serviceConfig := range handler.servicesConfig.Services {
+			if serviceConfig["token"] == authorization {
+				log.Printf("Authenticated service %s", serviceConfig["name"])
+			}
+		}
+	}
 	handler.delegate.ServeHTTP(w, r)
 }

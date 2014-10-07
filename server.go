@@ -47,7 +47,7 @@ func StartFileServer(hostAndPort string, corsHostAndPort string) {
 	log.Printf("Starting HTTP server on %s", hostAndPort)
 
 	mux := http.NewServeMux()
-	mux.Handle("/", NewAuthorizationHandler(NewCorsHandler(corsHostAndPort, http.FileServer(http.Dir("static")))))
+	mux.Handle("/", NewCorsHandler(corsHostAndPort, http.FileServer(http.Dir("static"))))
 	mux.Handle("/ws", http.HandlerFunc(WebsocketHandler))
 	server := &http.Server{
 		Addr:    hostAndPort,
@@ -57,9 +57,9 @@ func StartFileServer(hostAndPort string, corsHostAndPort string) {
 }
 
 // Start the event bus server for handling JSON events over HTTP
-func StartEventBusServer(hostAndPort string, corsHostAndPort string) {
+func StartEventBusServer(hostAndPort string, corsHostAndPort string, servicesConfig *ServicesConfig) {
 	mux := http.NewServeMux()
-	mux.Handle("/", NewAuthorizationHandler(NewCorsHandler(corsHostAndPort, http.HandlerFunc(eventBusRequestHandler))))
+	mux.Handle("/", NewAuthorizationHandler(servicesConfig, NewCorsHandler(corsHostAndPort, NewEventBusRequestHandler())))
 
 	log.Printf("Starting EventBus service on %s", hostAndPort)
 

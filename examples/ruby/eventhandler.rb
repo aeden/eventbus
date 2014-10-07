@@ -9,7 +9,7 @@ EVENT_BUS_SERVER_URL = URI('http://localhost:3001')
 WEBSOCKET_URI = 'ws://localhost:3000/ws'
 
 def authorization
-  'token xxx'
+  ENV['AUTHORIZATION_TOKEN']
 end
 
 # Create a new event in the EventBus.
