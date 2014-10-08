@@ -4,6 +4,14 @@ The puropose of this project is to provide an event bus that can be used from wi
 
 ![Communications Flow](http://cl.ly/image/2i3Q2z0e2U3e/communications.png)
 
+This project is largely about the design of applications using this architecture, not just this implementation. Alternative implementations could be created with other components, such as existing open source or commercial message queues and web servers.
+
+Thus, some of the key considerations are:
+
+* What does an end-to-end event-driven web application look like?
+* Is it a good way to develop web applications?
+* What are the benefits and drawbacks when compared to existing synchronous and synchronous/asynchronous solutions?
+
 # Status
 
 This project is brand new. It is NOT production-ready.
