@@ -1,6 +1,6 @@
 # Overview
 
-The puropose of this project is to provide an event bus that can be used from within web browsers via JavaScript as well as from applications in other languages. Events are added to the bus using an HTTP end point and then are distributed to attached listeners via WebSockets.
+The purpose of this project is to provide a unified event bus that can be used to trigger actions in browser-based JavaScript applications as well as from applications in other languages that are running on remote servers. Events are added to the bus using an HTTP end point and then are distributed to attached listeners via WebSockets.
 
 ![Communications Flow](http://cl.ly/image/2i3Q2z0e2U3e/communications.png)
 
