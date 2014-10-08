@@ -8,33 +8,44 @@ This project is brand new. It is NOT production-ready.
 
 # Design
 
+## Definitions
+
+### Client
+
+A client is a web browser, native client or application. Clients must always identify themselves after connecting via their WebSocket. Clients must also always include their identity in their event context when creating new events using the `identifier` key.
+
+### Services
+
+A service is application code that processes events and executes business logic. Services must always authenticate themselves after connecting via their WebSocket. Services must also always pass their authorization token whenever they create new events.
+
 ## Frontend
 
-The front end is HTML and JavaScript. It relies solely on events as the mechanism for dealing with input and output. For example, a form is filled in an the submit button is pressed. This results in an event. Events are sent to local listeners to update the UI as well as to a remote event bus for any additional processing. When a listener on the remote event bus handles the event it will fire a new event, directed towards the client's event bus (via websockets) where a listener handles the event and updates the UI. Browser UI events are translated from the UI event (i.e. button clicked) to an event that is domain-specific (for example "check-domain-availability").
+The sample front end is HTML and JavaScript, however native clients could also be used.
+
+The system relies solely on events as the mechanism for dealing with input and output. For example, a form is filled in an the submit button is pressed. This results in an event. Events are sent to local listeners to update the UI as well as to a remote event bus for any additional processing. When a listener on the remote event bus handles the event it will fire a new event, directed towards the client's event bus (via websockets) where a listener handles the event and updates the UI. Browser UI events are translated from the UI event (i.e. button clicked) to an event that is domain-specific (for example "check-domain-availability").
 
 ## Backend
 
 The backend is purely functional event handlers. A listener handles the event, perhaps firing off events to the bus, potentially handled by other listeners or the client for UI updates. A backend listener could be implemented in any language as long as it can make HTTP calls and has a WebSocket library.
 
-## Creating Events
+The backend consists of the following:
 
-Events are always added to the bus using a synchronous HTTP call. A successfully added event returns a 200. Any other response code indicates that the event add failed and should be retried.
+* A static file server for serving up the JS/HTML/CSS files
+* An HTTP endpoint for pushing events into the event bus
+* A WebSocket endpoint for establishing WebSocket connections
+* Event routing logic for determining who can receive an event
+* A stateful identity store for tracking client message source
+* An authentication layer for services
 
-## Authentication
+## The EventBus Queue
 
-### Clients
+The event bus is a publish/subscribe queue. Events are published to the bus using a synchronous HTTP call. A successfully added event returns a 200. Any other response code indicates that the event add failed and should be retried.
 
-Clients represent browsers or devices.
+A successfully added event is persisted in an event store. The current implementation is in-memory and disappears when the application terminates.
 
-A client must identify itself when the websocket connection is established. This must occur before it sends its first event.
+Subscribers always receive events via WebSockets. Clients only receive events that are addressed to them. Services receive all events.
 
-Events must include the client identifier in the event context using the key `identifier`.
-
-### Services
-
-Services are listeners that can handle events and execute work.
-
-A service must include an authorization token on each request.
+There is currently no guarantee that an event will be delivered.
 
 # Running
 
@@ -79,3 +90,5 @@ The sample Ruby script uses Event Machine.
 # Issues
 
 * Currently the EventBus WebSocket service handles only unecrypted calls.
+* The event system does not guarantee at-least-once delivery to connected services.
+* Events are persistent but subscribers have no way of getting at old events.
