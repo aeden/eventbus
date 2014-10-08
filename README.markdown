@@ -2,6 +2,8 @@
 
 The puropose of this project is to provide an event bus that can be used from within web browsers via JavaScript as well as from applications in other languages. Events are added to the bus using an HTTP end point and then are distributed to attached listeners via WebSockets.
 
+![Communications Flow](http://cl.ly/image/2i3Q2z0e2U3e/communications.png)
+
 # Status
 
 This project is brand new. It is NOT production-ready.
