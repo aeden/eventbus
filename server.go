@@ -21,42 +21,10 @@ func NewEventBusRequestHandler(servicesConfig *ServicesConfig, eventStore EventS
 }
 
 func (handler *EventBusRequestHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Received request from %s", r.RemoteAddr)
+
 	if r.Method == "POST" {
-		authContext := handler.authorizeEventPostClient(w, r)
-		log.Printf("Received request from %s", r.RemoteAddr)
-		log.Printf("Authorization context: %v", authContext)
-		event := NewEvent()
-		decoder := json.NewDecoder(r.Body)
-		err := decoder.Decode(&event)
-		if err != nil {
-			log.Printf("Parser error: %s", err)
-			http.Error(w, fmt.Sprintf("Parser error: %s", err), 500)
-		} else {
-			// If client access token isn't present, and auth context is nil, then 401
-			clientAccessToken := event.Context["identifier"]
-			if clientAccessToken == "" && authContext == nil {
-				http.Error(w, "Authorization required", http.StatusUnauthorized)
-				return
-			}
-
-			// The event should be persisted here
-			err := handler.eventStore.WriteEvent(event)
-			if err != nil {
-				http.Error(w, "Failed to write event", http.StatusInternalServerError)
-			}
-
-			// If the event was successfully persisted, return OK
-			w.WriteHeader(http.StatusOK)
-
-			// If client access token is present, then send to client
-			if clientAccessToken != "" {
-				NotifyClient(clientAccessToken, event)
-			}
-
-			// Broadcast the event to services
-			NotifyServices(event)
-		}
-
+		handler.handlePost(w, r)
 	} else if r.Method == "OPTIONS" {
 		w.WriteHeader(http.StatusOK)
 	} else if r.Method == "GET" {
@@ -72,7 +40,45 @@ func (handler *EventBusRequestHandler) ServeHTTP(w http.ResponseWriter, r *http.
 	}
 }
 
-func (handler *EventBusRequestHandler) authorizeEventPostClient(w http.ResponseWriter, r *http.Request) (authContext interface{}) {
+func (handler *EventBusRequestHandler) handlePost(w http.ResponseWriter, r *http.Request) {
+	authContext := handler.prepareAuthContext(w, r)
+	log.Printf("Authorization context: %v", authContext)
+
+	event, err := handler.decodeEvent(r)
+	if err != nil {
+		log.Printf("Parser error: %s", err)
+		http.Error(w, fmt.Sprintf("Parser error: %s", err), 500)
+	} else {
+		// If client access token isn't present, and auth context is nil, then 401
+		clientAccessToken := event.Context["identifier"]
+		if clientAccessToken == "" && authContext == nil {
+			http.Error(w, "Authorization required", http.StatusUnauthorized)
+			return
+		}
+
+		// The event is persisted here
+		err := handler.eventStore.WriteEvent(event)
+		if err != nil {
+			http.Error(w, "Failed to write event", http.StatusInternalServerError)
+                        return
+		}
+
+		// If the event was successfully persisted, return OK
+		w.WriteHeader(http.StatusOK)
+
+		// Route event
+		go RouteEvent(event)
+	}
+}
+
+func (handler *EventBusRequestHandler) decodeEvent(r *http.Request) (event *Event, err error) {
+	event = NewEvent()
+	decoder := json.NewDecoder(r.Body)
+	err = decoder.Decode(&event)
+	return
+}
+
+func (handler *EventBusRequestHandler) prepareAuthContext(w http.ResponseWriter, r *http.Request) (authContext interface{}) {
 	authorization := r.Header.Get("Authorization")
 	if authorization != "" {
 		for _, serviceConfig := range handler.servicesConfig.Services {

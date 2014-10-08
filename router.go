@@ -5,6 +5,18 @@ import (
 	"log"
 )
 
+func RouteEvent(event *Event) {
+	clientAccessToken := event.Context["identifier"]
+
+	// If client access token is present, then send to client
+	if clientAccessToken != "" {
+		NotifyClient(clientAccessToken, event)
+	}
+
+	// Broadcast the event to services
+	NotifyServices(event)
+}
+
 func Notify(event *Event) {
 	eventJSON, err := json.Marshal(event)
 	if err != nil {
