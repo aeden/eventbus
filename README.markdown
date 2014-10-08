@@ -12,6 +12,12 @@ Thus, some of the key considerations are:
 * Is it a good way to develop web applications?
 * What are the benefits and drawbacks when compared to existing synchronous and synchronous/asynchronous solutions?
 
+This system's design borrows heavily from:
+
+* The event-driven design of JavaScript.
+* Concepts for micro-services.
+* Existing queue systems such as ZeroMQ and Kafka.
+
 # Status
 
 This project is brand new. It is NOT production-ready.
