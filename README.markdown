@@ -103,6 +103,14 @@ Your web browser must support WebSockets.
 
 The sample Ruby script uses Event Machine.
 
+# FAQ
+
+In which I explain certain design decisions.
+
+### Why not use websockets for both publishing events in and distributing events out?
+
+The HTTP protocol is ideally suited for the synchronous nature of publishing an event to the queue. The system can take advantage of the protocol's built-in mechanisms for authorization, errors, etc. On the other hand, WebSockets are great for streaming data once a connection is established. Server-sent events (SSE) are another option: http://www.html5rocks.com/en/tutorials/eventsource/basics/ - right now IE has no support for SSE but does have support for WebSockets.
+
 # Issues
 
 * Currently the EventBus WebSocket service handles only unecrypted calls.
