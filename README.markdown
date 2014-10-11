@@ -38,7 +38,7 @@ A service is application code that processes events and executes business logic.
 
 The sample front end is HTML and JavaScript, however native clients could also be used.
 
-The system relies solely on events as the mechanism for dealing with input and output. For example, a form is filled in an the submit button is pressed. This results in an event. Events are sent to local listeners to update the UI as well as to a remote event bus for any additional processing. When a listener on the remote event bus handles the event it will fire a new event, directed towards the client's event bus (via websockets) where a listener handles the event and updates the UI. Browser UI events are translated from the UI event (i.e. button clicked) to an event that is domain-specific (for example "check-domain-availability").
+The system relies solely on events as the mechanism for dealing with input and output. For example, a form is filled in an the submit button is pressed. This results in an event. Events are sent to local listeners to update the UI as well as to a remote event bus for any additional processing. When a listener on the remote event bus handles the event it will fire a new event, directed towards the client's event bus (via WebSockets) where a listener handles the event and updates the UI. Browser UI events are translated from the UI event (i.e. button clicked) to an event that is domain-specific (for example "check-domain-availability").
 
 ## Backend
 
@@ -107,7 +107,7 @@ The sample Ruby script uses Event Machine.
 
 In which I explain certain design decisions.
 
-### Why not use websockets for both publishing events in and distributing events out?
+### Why not use WebSockets for both publishing events in and distributing events out?
 
 The HTTP protocol is ideally suited for the synchronous nature of publishing an event to the queue. The system can take advantage of the protocol's built-in mechanisms for authorization, errors, etc. On the other hand, WebSockets are great for streaming data once a connection is established. Server-sent events (SSE) are another option: http://www.html5rocks.com/en/tutorials/eventsource/basics/ - right now IE has no support for SSE but does have support for WebSockets.
 
