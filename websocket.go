@@ -8,62 +8,7 @@ import (
 	"net/http"
 )
 
-type wsConnection struct {
-	// The websocket connection.
-	ws *websocket.Conn
-
-	// Buffered channel of outbound messages.
-	send chan []byte
-}
-
-type wsHub struct {
-	// Registered connections.
-	connections map[*wsConnection]*wsConnectionState
-
-	// Inbound messages from the connections.
-	broadcast chan []byte
-
-	// Actions from connections
-	execute chan *wsCommand
-
-	// Register requests from the connections.
-	register chan *wsConnection
-
-	// Unregister requests from connections.
-	unregister chan *wsConnection
-}
-
-type wsCommand struct {
-	source *wsConnection
-	Action string `json:"action"`
-}
-
-type wsIdentifyCommandResponse struct {
-	Action string `json:"action"`
-	Token  string `json:"token"`
-}
-
-type wsAuthenticateCommandResponse struct {
-	Action string `json:"action"`
-}
-
-type wsCommandErrorResponse struct {
-	Action       string `json:"action"`
-	ErrorMessage string `json:"error"`
-}
-
-type wsConnectionState struct {
-	Token      string
-	ClientType string
-}
-
-var WebsocketHub = wsHub{
-	broadcast:   make(chan []byte),
-	execute:     make(chan *wsCommand),
-	register:    make(chan *wsConnection),
-	unregister:  make(chan *wsConnection),
-	connections: make(map[*wsConnection]*wsConnectionState),
-}
+// Public interface
 
 // Broadcast the given message to all listeners
 func (h *wsHub) Send(message []byte) {
@@ -87,6 +32,71 @@ func (h *wsHub) SendToServices(message []byte) {
 			h.sendToConnection(c, message)
 		}
 	}
+}
+
+// internal
+
+type wsConnection struct {
+	// The websocket connection.
+	ws *websocket.Conn
+
+	// Buffered channel of outbound messages.
+	send chan []byte
+}
+
+type wsHub struct {
+	// Registered connections.
+	connections map[*wsConnection]*wsConnectionState
+
+	// Inbound messages from the connections.
+	broadcast chan []byte
+
+	// Actions from connections
+	execute chan *wsCommand
+
+	// Register requests from the connections.
+	register chan *wsConnection
+
+	// Unregister requests from connections.
+	unregister chan *wsConnection
+
+	// Service Authenticator
+	serviceAuthenticator Authenticator
+}
+
+type wsCommand struct {
+	source *wsConnection
+	Action string `json:"action"`
+}
+
+type wsIdentifyCommandResponse struct {
+	Action string `json:"action"`
+	Token  string `json:"token"`
+}
+
+type wsAuthenticateCommandResponse struct {
+	Action        string `json:"action"`
+	Authenticated bool   `json:"authenticated"`
+}
+
+type wsCommandErrorResponse struct {
+	Action       string `json:"action"`
+	ErrorMessage string `json:"error"`
+}
+
+type wsConnectionState struct {
+	Token         string
+	ClientType    string
+	authenticated bool
+}
+
+var WebsocketHub = wsHub{
+	connections:          make(map[*wsConnection]*wsConnectionState),
+	broadcast:            make(chan []byte),
+	execute:              make(chan *wsCommand),
+	register:             make(chan *wsConnection),
+	unregister:           make(chan *wsConnection),
+	serviceAuthenticator: &DefaultAuthenticator{},
 }
 
 // Send the message to the specific connection
@@ -117,53 +127,59 @@ func (h *wsHub) run() {
 				h.sendToConnection(connection, message)
 			}
 		case command := <-h.execute:
-			execute(command)
+			command.execute()
 		}
 	}
 }
 
-func execute(command *wsCommand) {
-	if command.Action == "identify" {
+func (command *wsCommand) execute() {
+	switch command.Action {
+	case "identify":
 		connectionState := WebsocketHub.connections[command.source]
 		connectionState.Token = randSeq(60)
 		connectionState.ClientType = "client"
 
-		response := &wsIdentifyCommandResponse{
+		command.respond(&wsIdentifyCommandResponse{
 			Action: command.Action,
 			Token:  connectionState.Token,
-		}
-		responseJSON, err := json.Marshal(response)
-		if err != nil {
-			log.Printf("Error marshaling response JSON: %s", err)
-			return
-		}
-
-		WebsocketHub.sendToConnection(command.source, responseJSON)
-	} else if command.Action == "authenticate" {
+		})
+	case "authenticate":
 		connectionState := WebsocketHub.connections[command.source]
 		connectionState.ClientType = "service"
+		authenticated, err := WebsocketHub.serviceAuthenticator.Authenticate(nil)
+		if err != nil {
+			command.respondWithError(err.Error())
+		} else {
+			if authenticated {
+				connectionState.authenticated = true
+			}
 
-		response := &wsAuthenticateCommandResponse{
-			Action: command.Action,
+			command.respond(&wsAuthenticateCommandResponse{
+				Action:        command.Action,
+				Authenticated: connectionState.authenticated,
+			})
 		}
-		responseJSON, err := json.Marshal(response)
-		if err != nil {
-			log.Printf("Error marshaling response JSON: %s", err)
-			return
-		}
-		WebsocketHub.sendToConnection(command.source, responseJSON)
-	} else {
-		response := &wsCommandErrorResponse{
-			Action:       command.Action,
-			ErrorMessage: "Unknown command",
-		}
-		responseJSON, err := json.Marshal(response)
-		if err != nil {
-			log.Printf("Error marshaling response JSON: %s", err)
-			return
-		}
-		WebsocketHub.sendToConnection(command.source, responseJSON)
+
+	default:
+		command.respondWithError("Unknown command")
 	}
+}
+
+func (command *wsCommand) respond(response interface{}) {
+	responseJSON, err := json.Marshal(response)
+	if err != nil {
+		log.Printf("Error marshaling response JSON: %s", err)
+		return
+	}
+
+	WebsocketHub.sendToConnection(command.source, responseJSON)
+}
+
+func (command *wsCommand) respondWithError(message string) {
+	command.respond(&wsCommandErrorResponse{
+		Action:       command.Action,
+		ErrorMessage: message,
+	})
 }
 
 func (c *wsConnection) reader() {
