@@ -2,6 +2,7 @@ package eventbus
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
@@ -193,10 +194,29 @@ func (c *wsConnection) writer() {
 	c.ws.Close()
 }
 
-var upgrader = &websocket.Upgrader{ReadBufferSize: 1024, WriteBufferSize: 1024}
+type WebSocketHandler struct {
+	upgrader *websocket.Upgrader
+}
 
-func WebsocketHandler(w http.ResponseWriter, r *http.Request) {
-	ws, err := upgrader.Upgrade(w, r, nil)
+func NewWebSocketHandler(corsHostAndPort string) *WebSocketHandler {
+	upgrader := &websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024,
+		CheckOrigin: func(r *http.Request) bool {
+			origin := r.Header.Get("Origin")
+			if origin == "" {
+				return true
+			} else if origin == fmt.Sprintf("http://%s", corsHostAndPort) {
+				return true
+			} else {
+				return false
+			}
+		}}
+	return &WebSocketHandler{upgrader: upgrader}
+}
+
+func (handler *WebSocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	ws, err := handler.upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Printf("Error upgrading connection: %s", err)
 		return

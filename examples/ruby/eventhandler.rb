@@ -6,7 +6,7 @@ require 'date'
 require 'net/http'
 
 EVENT_BUS_SERVER_URL = URI('http://localhost:3001')
-WEBSOCKET_URI = 'ws://localhost:3000/ws'
+WEBSOCKET_URI = 'ws://localhost:3001/ws'
 
 def authorization
   ENV['AUTHORIZATION_TOKEN']

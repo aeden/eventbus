@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"github.com/aeden/eventbus"
+	"github.com/aeden/eventbus/fileserver"
 	"io/ioutil"
 	"log"
 	"net"
@@ -37,7 +38,7 @@ func main() {
 
 	eventbus.StartWebsocketHub()
 
-	go eventbus.StartFileServer(fileServerHostAndPort, eventBusHostAndPort)
+	go fileserver.StartFileServer(fileServerHostAndPort, eventBusHostAndPort)
 	eventbus.StartEventBusServer(eventBusHostAndPort, fileServerHostAndPort, servicesConfig, eventStore)
 
 }

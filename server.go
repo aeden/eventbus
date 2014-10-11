@@ -3,6 +3,7 @@ package eventbus
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/aeden/eventbus/middleware"
 	"log"
 	"net/http"
 	"time"
@@ -60,7 +61,7 @@ func (handler *EventBusRequestHandler) handlePost(w http.ResponseWriter, r *http
 		err := handler.eventStore.WriteEvent(event)
 		if err != nil {
 			http.Error(w, "Failed to write event", http.StatusInternalServerError)
-                        return
+			return
 		}
 
 		// If the event was successfully persisted, return OK
@@ -91,24 +92,11 @@ func (handler *EventBusRequestHandler) prepareAuthContext(w http.ResponseWriter,
 	return
 }
 
-// Start a file server for serving HTML, CSS and JS files
-func StartFileServer(hostAndPort string, corsHostAndPort string) {
-	log.Printf("Starting HTTP server on %s", hostAndPort)
-
-	mux := http.NewServeMux()
-	mux.Handle("/", NewCorsHandler(corsHostAndPort, http.FileServer(http.Dir("static"))))
-	mux.Handle("/ws", http.HandlerFunc(WebsocketHandler))
-	server := &http.Server{
-		Addr:    hostAndPort,
-		Handler: mux,
-	}
-	server.ListenAndServe()
-}
-
 // Start the event bus server for handling JSON events over HTTP
 func StartEventBusServer(hostAndPort string, corsHostAndPort string, servicesConfig *ServicesConfig, eventStore EventStore) {
 	mux := http.NewServeMux()
-	mux.Handle("/", NewCorsHandler(corsHostAndPort, NewEventBusRequestHandler(servicesConfig, eventStore)))
+	mux.Handle("/", middleware.NewCorsHandler(corsHostAndPort, NewEventBusRequestHandler(servicesConfig, eventStore)))
+	mux.Handle("/ws", NewWebSocketHandler(corsHostAndPort))
 
 	log.Printf("Starting EventBus service on %s", hostAndPort)
 

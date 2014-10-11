@@ -4,10 +4,9 @@ import (
 	"math/rand"
 )
 
-// Utility to generate a random string
-// TODO: move this somewhere else
 var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
+// Utility to generate a random string
 func randSeq(n int) string {
 	b := make([]rune, n)
 	for i := range b {
