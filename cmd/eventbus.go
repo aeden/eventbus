@@ -13,7 +13,6 @@ var (
 	fileServerPort     = os.Getenv("HTTP_FILE_SERVER_PORT")
 	eventBusServerHost = os.Getenv("HTTP_EVENTBUS_SERVER_HOST")
 	eventBusServerPort = os.Getenv("HTTP_EVENTBUS_SERVER_PORT")
-	eventStore         = eventbus.NewNullEventStore()
 )
 
 func main() {
