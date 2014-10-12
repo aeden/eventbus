@@ -96,12 +96,10 @@ Where eventbus-url is replaced with the URL for the EventBus server.
 There is an example application in the `static` directory. To see it in action, do the following:
 
 * Run the EventBus server as described above.
-* In a separate console, run the example Ruby script in `examples/ruby` using the command `foreman start` from within that directory.
+* In a separate console, run the example Ruby service in https://github.com/aeden/eventbus-example-service-ruby
 * Open your browser to [http://localhost:3000](http://localhost:3000)
 
 Your web browser must support WebSockets.
-
-The sample Ruby script uses Event Machine.
 
 # FAQ
 
