@@ -11,10 +11,12 @@ type EventStore interface {
 type NullEventStore struct {
 }
 
+// Construct a new NullEventStore and return a pointer to it.
 func NewNullEventStore() *NullEventStore {
 	return &NullEventStore{}
 }
 
+// Silently discard the event.
 func (store *NullEventStore) WriteEvent(event *Event) (err error) {
 	return
 }
@@ -29,6 +31,7 @@ func NewInMemoryEventStore() *InMemoryEventStore {
 	return &InMemoryEventStore{}
 }
 
+// Save the event in an in-memory array.
 func (store *InMemoryEventStore) WriteEvent(event *Event) (err error) {
 	store.Events = append(store.Events, event)
 	return
