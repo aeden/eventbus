@@ -68,7 +68,7 @@ func (handler *EventBusRequestHandler) handlePost(w http.ResponseWriter, r *http
 		w.WriteHeader(http.StatusOK)
 
 		// Route event
-		go RouteEvent(event)
+		go routeEvent(event)
 	}
 }
 

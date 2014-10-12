@@ -5,41 +5,41 @@ import (
 	"log"
 )
 
-func RouteEvent(event *Event) {
+func routeEvent(event *Event) {
 	clientAccessToken := event.Context["identifier"]
 
 	// If client access token is present, then send to client
 	if clientAccessToken != "" {
-		NotifyClient(clientAccessToken, event)
+		notifyClient(clientAccessToken, event)
 	}
 
 	// Broadcast the event to services
-	NotifyServices(event)
+	notifyServices(event)
 }
 
-func Notify(event *Event) {
+func notify(event *Event) {
 	eventJSON, err := json.Marshal(event)
 	if err != nil {
 		log.Printf("Error marshaling event JSON: %s", err)
 		return
 	}
-	WebsocketHub.Send(eventJSON)
+	websocketHub.send(eventJSON)
 }
 
-func NotifyClient(clientAccessToken string, event *Event) {
+func notifyClient(clientAccessToken string, event *Event) {
 	eventJSON, err := json.Marshal(event)
 	if err != nil {
 		log.Printf("Error marshaling event JSON: %s", err)
 		return
 	}
-	WebsocketHub.SendToClient(clientAccessToken, eventJSON)
+	websocketHub.sendToClient(clientAccessToken, eventJSON)
 }
 
-func NotifyServices(event *Event) {
+func notifyServices(event *Event) {
 	eventJSON, err := json.Marshal(event)
 	if err != nil {
 		log.Printf("Error marshaling event JSON: %s", err)
 		return
 	}
-	WebsocketHub.SendToServices(eventJSON)
+	websocketHub.sendToServices(eventJSON)
 }

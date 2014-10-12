@@ -11,12 +11,12 @@ import (
 // Public interface
 
 // Broadcast the given message to all listeners
-func (h *wsHub) Send(message []byte) {
+func (h *wsHub) send(message []byte) {
 	h.broadcast <- message
 }
 
 // Send the message to a specific client
-func (h *wsHub) SendToClient(clientAccessToken string, message []byte) {
+func (h *wsHub) sendToClient(clientAccessToken string, message []byte) {
 	for c, cs := range h.connections {
 		if cs.Token == clientAccessToken {
 			h.sendToConnection(c, message)
@@ -26,7 +26,7 @@ func (h *wsHub) SendToClient(clientAccessToken string, message []byte) {
 }
 
 // Send the message to all services
-func (h *wsHub) SendToServices(message []byte) {
+func (h *wsHub) sendToServices(message []byte) {
 	for c, cs := range h.connections {
 		if cs.ClientType == "service" {
 			h.sendToConnection(c, message)
@@ -90,7 +90,7 @@ type wsConnectionState struct {
 	authenticated bool
 }
 
-var WebsocketHub = wsHub{
+var websocketHub = wsHub{
 	connections:          make(map[*wsConnection]*wsConnectionState),
 	broadcast:            make(chan []byte),
 	execute:              make(chan *wsCommand),
@@ -135,7 +135,7 @@ func (h *wsHub) run() {
 func (command *wsCommand) execute() {
 	switch command.Action {
 	case "identify":
-		connectionState := WebsocketHub.connections[command.source]
+		connectionState := websocketHub.connections[command.source]
 		connectionState.Token = randSeq(60)
 		connectionState.ClientType = "client"
 
@@ -144,9 +144,9 @@ func (command *wsCommand) execute() {
 			Token:  connectionState.Token,
 		})
 	case "authenticate":
-		connectionState := WebsocketHub.connections[command.source]
+		connectionState := websocketHub.connections[command.source]
 		connectionState.ClientType = "service"
-		authenticated, err := WebsocketHub.serviceAuthenticator.Authenticate(nil)
+		authenticated, err := websocketHub.serviceAuthenticator.Authenticate(nil)
 		if err != nil {
 			command.respondWithError(err.Error())
 		} else {
@@ -172,7 +172,7 @@ func (command *wsCommand) respond(response interface{}) {
 		return
 	}
 
-	WebsocketHub.sendToConnection(command.source, responseJSON)
+	websocketHub.sendToConnection(command.source, responseJSON)
 }
 
 func (command *wsCommand) respondWithError(message string) {
@@ -195,7 +195,7 @@ func (c *wsConnection) reader() {
 		json.Unmarshal(message, command)
 		log.Printf("Command received: %s", command.Action)
 
-		WebsocketHub.execute <- command
+		websocketHub.execute <- command
 	}
 	c.ws.Close()
 }
@@ -239,12 +239,12 @@ func (handler *WebSocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 	}
 	log.Printf("Establishing websocket connection")
 	c := &wsConnection{send: make(chan []byte, 256), ws: ws}
-	WebsocketHub.register <- c
-	defer func() { WebsocketHub.unregister <- c }()
+	websocketHub.register <- c
+	defer func() { websocketHub.unregister <- c }()
 	go c.writer()
 	c.reader()
 }
 
 func StartWebsocketHub() {
-	go WebsocketHub.run()
+	go websocketHub.run()
 }
