@@ -15,6 +15,8 @@ type CorsHandler struct {
 }
 
 // Construct a new CORS handler.
+//
+// corsHostAndPort is a string representation of the allowed origin.
 func NewCorsHandler(corsHostAndPort string, handler http.Handler) *CorsHandler {
 	return &CorsHandler{
 		corsHostAndPort: corsHostAndPort,
@@ -22,6 +24,14 @@ func NewCorsHandler(corsHostAndPort string, handler http.Handler) *CorsHandler {
 	}
 }
 
+/*
+Write the appropriate CORS headers required for eventbus to function
+properly. Currently two headers are added:
+
+ * Access-Control-Allow-Origin: http://host:port
+ * Access-Control-Allow-Headers: Content-Type
+
+*/
 func (handler *CorsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", fmt.Sprintf("http://%s", handler.corsHostAndPort))
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
