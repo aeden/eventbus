@@ -91,6 +91,10 @@ Access-Control-Allow-Headers: Content-Type
 
 Where eventbus-url is replaced with the URL for the EventBus server.
 
+# Docs
+
+API documentation is at [https://godoc.org/github.com/aeden/eventbus](https://godoc.org/github.com/aeden/eventbus).
+
 # Demo
 
 There is an demo JavaScript web application in the `static` directory. To see it in action, do the following:
