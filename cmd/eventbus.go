@@ -15,6 +15,7 @@ var (
 	fileServerPort     = os.Getenv("HTTP_FILE_SERVER_PORT")
 	eventBusServerHost = os.Getenv("HTTP_EVENTBUS_SERVER_HOST")
 	eventBusServerPort = os.Getenv("HTTP_EVENTBUS_SERVER_PORT")
+	eventStore         = eventbus.NewNullEventStore()
 )
 
 func loadServicesConfig() *eventbus.ServicesConfig {
@@ -30,8 +31,6 @@ func loadServicesConfig() *eventbus.ServicesConfig {
 
 func main() {
 	servicesConfig := loadServicesConfig()
-
-	eventStore := eventbus.NewInMemoryEventStore()
 
 	fileServerHostAndPort := net.JoinHostPort(fileServerHost, fileServerPort)
 	eventBusHostAndPort := net.JoinHostPort(eventBusServerHost, eventBusServerPort)
