@@ -9,19 +9,19 @@ import (
 	"time"
 )
 
-type EventBusRequestHandler struct {
+type eventBusRequestHandler struct {
 	servicesConfig *ServicesConfig
 	eventStore     EventStore
 }
 
-func NewEventBusRequestHandler(servicesConfig *ServicesConfig, eventStore EventStore) http.Handler {
-	return &EventBusRequestHandler{
+func newEventBusRequestHandler(servicesConfig *ServicesConfig, eventStore EventStore) http.Handler {
+	return &eventBusRequestHandler{
 		servicesConfig: servicesConfig,
 		eventStore:     eventStore,
 	}
 }
 
-func (handler *EventBusRequestHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (handler *eventBusRequestHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Received request from %s", r.RemoteAddr)
 
 	if r.Method == "POST" {
@@ -41,7 +41,7 @@ func (handler *EventBusRequestHandler) ServeHTTP(w http.ResponseWriter, r *http.
 	}
 }
 
-func (handler *EventBusRequestHandler) handlePost(w http.ResponseWriter, r *http.Request) {
+func (handler *eventBusRequestHandler) handlePost(w http.ResponseWriter, r *http.Request) {
 	authContext := handler.prepareAuthContext(w, r)
 	log.Printf("Authorization context: %v", authContext)
 
@@ -72,14 +72,14 @@ func (handler *EventBusRequestHandler) handlePost(w http.ResponseWriter, r *http
 	}
 }
 
-func (handler *EventBusRequestHandler) decodeEvent(r *http.Request) (event *Event, err error) {
+func (handler *eventBusRequestHandler) decodeEvent(r *http.Request) (event *Event, err error) {
 	event = NewEvent()
 	decoder := json.NewDecoder(r.Body)
 	err = decoder.Decode(&event)
 	return
 }
 
-func (handler *EventBusRequestHandler) prepareAuthContext(w http.ResponseWriter, r *http.Request) (authContext interface{}) {
+func (handler *eventBusRequestHandler) prepareAuthContext(w http.ResponseWriter, r *http.Request) (authContext interface{}) {
 	authorization := r.Header.Get("Authorization")
 	if authorization != "" {
 		for _, serviceConfig := range handler.servicesConfig.Services {
@@ -92,11 +92,14 @@ func (handler *EventBusRequestHandler) prepareAuthContext(w http.ResponseWriter,
 	return
 }
 
-// Start the event bus server for handling JSON events over HTTP
+// Start the event bus server for handling JSON events over HTTP.
+//
+// This function starts a handler on the root that is used for POST requests to construct new events. It also 
+// starts a WebSocket handler on `/ws` that is used for broadcasting events to the client or service.
 func StartEventBusServer(hostAndPort string, corsHostAndPort string, servicesConfig *ServicesConfig, eventStore EventStore) {
 	mux := http.NewServeMux()
-	mux.Handle("/", middleware.NewCorsHandler(corsHostAndPort, NewEventBusRequestHandler(servicesConfig, eventStore)))
-	mux.Handle("/ws", NewWebSocketHandler(corsHostAndPort))
+	mux.Handle("/", middleware.NewCorsHandler(corsHostAndPort, newEventBusRequestHandler(servicesConfig, eventStore)))
+	mux.Handle("/ws", newWebSocketHandler(corsHostAndPort))
 
 	log.Printf("Starting EventBus service on %s", hostAndPort)
 

@@ -8,8 +8,6 @@ import (
 	"net/http"
 )
 
-// Public interface
-
 // Broadcast the given message to all listeners
 func (h *wsHub) send(message []byte) {
 	h.broadcast <- message
@@ -33,8 +31,6 @@ func (h *wsHub) sendToServices(message []byte) {
 		}
 	}
 }
-
-// internal
 
 type wsConnection struct {
 	// The websocket connection.
@@ -210,11 +206,11 @@ func (c *wsConnection) writer() {
 	c.ws.Close()
 }
 
-type WebSocketHandler struct {
+type webSocketHandler struct {
 	upgrader *websocket.Upgrader
 }
 
-func NewWebSocketHandler(corsHostAndPort string) *WebSocketHandler {
+func newWebSocketHandler(corsHostAndPort string) *webSocketHandler {
 	upgrader := &websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
@@ -228,10 +224,10 @@ func NewWebSocketHandler(corsHostAndPort string) *WebSocketHandler {
 				return false
 			}
 		}}
-	return &WebSocketHandler{upgrader: upgrader}
+	return &webSocketHandler{upgrader: upgrader}
 }
 
-func (handler *WebSocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (handler *webSocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ws, err := handler.upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Printf("Error upgrading connection: %s", err)
