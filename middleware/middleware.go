@@ -1,3 +1,6 @@
+/* 
+Package middleware provides shared middleware that is used in HTTP services.
+*/
 package middleware
 
 import (
@@ -11,7 +14,8 @@ type CorsHandler struct {
 	delegate        http.Handler
 }
 
-func NewCorsHandler(corsHostAndPort string, handler http.Handler) http.Handler {
+// Construct a new CORS handler.
+func NewCorsHandler(corsHostAndPort string, handler http.Handler) *CorsHandler {
 	return &CorsHandler{
 		corsHostAndPort: corsHostAndPort,
 		delegate:        handler,

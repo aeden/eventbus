@@ -1,3 +1,6 @@
+/*
+Package fileserver is a simple file server for serving up static files for the JavaScript demo.
+*/
 package fileserver
 
 import (
