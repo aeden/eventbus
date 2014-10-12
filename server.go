@@ -51,7 +51,7 @@ Start the event bus server for handling JSON events over HTTP.
 
 This function starts a handler on the root that is used for POST
 requests to construct new events. It also starts a WebSocket
-handler on <code>/ws</code> that is used for broadcasting events to
+handler on /ws that is used for broadcasting events to
 the client or service.
 */
 func (server *Server) Start() {
