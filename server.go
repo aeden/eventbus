@@ -20,7 +20,7 @@ type Server struct {
 	httpServer      *http.Server
 	corsHostAndPort string
 	eventStore      EventStore
-	servicesConfig  *servicesConfig
+	servicesConfig  *[]ServiceConfig
 }
 
 // Configure a new server that is ready to be started.
@@ -31,7 +31,7 @@ func NewServer(opts ...option) *Server {
 			WriteTimeout: 2 * time.Second,
 		},
 		eventStore:     NewNullEventStore(),
-		servicesConfig: &servicesConfig{},
+		servicesConfig: &[]ServiceConfig{},
 	}
 
 	for _, opt := range opts {
@@ -83,20 +83,20 @@ func Services(in io.Reader) option {
 			log.Printf("Error reading services config: %s", e)
 		}
 
-		servicesConfig := servicesConfig{}
-		json.Unmarshal(file, &servicesConfig.Services)
-		server.servicesConfig = &servicesConfig
+		servicesConfig := &[]ServiceConfig{}
+		json.Unmarshal(file, servicesConfig)
+		server.servicesConfig = servicesConfig
 	}
 }
 
 // internal
 
 type eventBusRequestHandler struct {
-	servicesConfig *servicesConfig
+	servicesConfig *[]ServiceConfig
 	eventStore     EventStore
 }
 
-func newEventBusRequestHandler(servicesConfig *servicesConfig, eventStore EventStore) http.Handler {
+func newEventBusRequestHandler(servicesConfig *[]ServiceConfig, eventStore EventStore) http.Handler {
 	return &eventBusRequestHandler{
 		servicesConfig: servicesConfig,
 		eventStore:     eventStore,
@@ -164,7 +164,7 @@ func (handler *eventBusRequestHandler) decodeEvent(r *http.Request) (event *Even
 func (handler *eventBusRequestHandler) prepareAuthContext(w http.ResponseWriter, r *http.Request) (authContext interface{}) {
 	authorization := r.Header.Get("Authorization")
 	if authorization != "" {
-		for _, serviceConfig := range handler.servicesConfig.Services {
+		for _, serviceConfig := range *handler.servicesConfig {
 			if serviceConfig.Token == authorization {
 				authContext = serviceConfig
 				return
