@@ -91,9 +91,9 @@ Access-Control-Allow-Headers: Content-Type
 
 Where eventbus-url is replaced with the URL for the EventBus server.
 
-# Example
+# Demo
 
-There is an example application in the `static` directory. To see it in action, do the following:
+There is an demo JavaScript web application in the `static` directory. To see it in action, do the following:
 
 * Run the EventBus server as described above.
 * In a separate console, run the example Ruby service in https://github.com/aeden/eventbus-example-service-ruby
