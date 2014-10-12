@@ -92,7 +92,7 @@ var websocketHub = wsHub{
 	execute:              make(chan *wsCommand),
 	register:             make(chan *wsConnection),
 	unregister:           make(chan *wsConnection),
-	serviceAuthenticator: &DefaultAuthenticator{},
+	serviceAuthenticator: &AllowAllAuthenticator{},
 }
 
 // Send the message to the specific connection
