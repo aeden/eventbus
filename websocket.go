@@ -241,6 +241,6 @@ func (handler *webSocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 	c.reader()
 }
 
-func StartWebsocketHub() {
+func startWebsocketHub() {
 	go websocketHub.run()
 }

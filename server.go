@@ -4,10 +4,90 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/aeden/eventbus/middleware"
+	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
 )
+
+// configuration options
+
+type option func(*Server)
+
+// The EventBus server.
+type Server struct {
+	httpServer      *http.Server
+	corsHostAndPort string
+	eventStore      EventStore
+	servicesConfig  *ServicesConfig
+}
+
+// Configure a new server that is ready to be started.
+func NewServer(opts ...option) *Server {
+	server := &Server{
+		httpServer: &http.Server{
+			ReadTimeout:  2 * time.Second,
+			WriteTimeout: 2 * time.Second,
+		},
+		eventStore:     NewNullEventStore(),
+		servicesConfig: &ServicesConfig{},
+	}
+
+	for _, opt := range opts {
+		opt(server)
+	}
+
+	mux := http.NewServeMux()
+	mux.Handle("/", middleware.NewCorsHandler(server.corsHostAndPort, newEventBusRequestHandler(server.servicesConfig, server.eventStore)))
+	mux.Handle("/ws", newWebSocketHandler(server.corsHostAndPort))
+	server.httpServer.Handler = mux
+
+	return server
+}
+
+// Start the event bus server for handling JSON events over HTTP.
+//
+// This function starts a handler on the root that is used for POST
+// requests to construct new events. It also starts a WebSocket
+// handler on `/ws` that is used for broadcasting events to the client
+// or service.
+func (server *Server) Start() {
+	startWebsocketHub()
+	log.Printf("Starting EventBus server %s", server.httpServer.Addr)
+	server.httpServer.ListenAndServe()
+}
+
+// Configure the host and port of the EventBus server.
+func HostAndPort(v string) option {
+	return func(server *Server) {
+		server.httpServer.Addr = v
+	}
+}
+
+// Configure the CORS host and port for the EventBus server. This is
+// the host and port where JavaScript client calls are coming from.
+func CorsHostAndPort(v string) option {
+	return func(server *Server) {
+		server.corsHostAndPort = v
+	}
+}
+
+// Configure the services that will attach to the EventBus server.
+func Services(in io.Reader) option {
+	return func(server *Server) {
+		file, e := ioutil.ReadAll(in)
+		if e != nil {
+			log.Printf("Error reading services config: %s", e)
+		}
+
+		servicesConfig := ServicesConfig{}
+		json.Unmarshal(file, &servicesConfig.Services)
+		server.servicesConfig = &servicesConfig
+	}
+}
+
+// internal
 
 type eventBusRequestHandler struct {
 	servicesConfig *ServicesConfig
@@ -90,25 +170,4 @@ func (handler *eventBusRequestHandler) prepareAuthContext(w http.ResponseWriter,
 		}
 	}
 	return
-}
-
-// Start the event bus server for handling JSON events over HTTP.
-//
-// This function starts a handler on the root that is used for POST requests to construct new events. It also 
-// starts a WebSocket handler on `/ws` that is used for broadcasting events to the client or service.
-func StartEventBusServer(hostAndPort string, corsHostAndPort string, servicesConfig *ServicesConfig, eventStore EventStore) {
-	mux := http.NewServeMux()
-	mux.Handle("/", middleware.NewCorsHandler(corsHostAndPort, newEventBusRequestHandler(servicesConfig, eventStore)))
-	mux.Handle("/ws", newWebSocketHandler(corsHostAndPort))
-
-	log.Printf("Starting EventBus service on %s", hostAndPort)
-
-	server := &http.Server{
-		Addr:         hostAndPort,
-		Handler:      mux,
-		ReadTimeout:  2 * time.Second,
-		WriteTimeout: 2 * time.Second,
-	}
-
-	server.ListenAndServe()
 }

@@ -1,10 +1,8 @@
 package main
 
 import (
-	"encoding/json"
 	"github.com/aeden/eventbus"
 	"github.com/aeden/eventbus/fileserver"
-	"io/ioutil"
 	"log"
 	"net"
 	"os"
@@ -18,26 +16,24 @@ var (
 	eventStore         = eventbus.NewNullEventStore()
 )
 
-func loadServicesConfig() *eventbus.ServicesConfig {
-	file, e := ioutil.ReadFile("services.json")
-	if e != nil {
-		log.Printf("Error reading services config: %s", e)
-	}
-
-	servicesConfig := eventbus.ServicesConfig{}
-	json.Unmarshal(file, &servicesConfig.Services)
-	return &servicesConfig
-}
-
 func main() {
-	servicesConfig := loadServicesConfig()
+	servicesFile := "services.json"
+	file, err := os.Open(servicesFile)
+	if err != nil {
+		log.Printf("Failed to open %s", servicesFile)
+		os.Exit(1)
+	}
 
 	fileServerHostAndPort := net.JoinHostPort(fileServerHost, fileServerPort)
 	eventBusHostAndPort := net.JoinHostPort(eventBusServerHost, eventBusServerPort)
 
-	eventbus.StartWebsocketHub()
-
 	go fileserver.StartFileServer(fileServerHostAndPort, eventBusHostAndPort)
-	eventbus.StartEventBusServer(eventBusHostAndPort, fileServerHostAndPort, servicesConfig, eventStore)
+
+	server := eventbus.NewServer(
+		eventbus.HostAndPort(eventBusHostAndPort),
+		eventbus.CorsHostAndPort(fileServerHostAndPort),
+		eventbus.Services(file),
+	)
+	server.Start()
 
 }
