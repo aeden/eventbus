@@ -57,7 +57,7 @@ type wsHub struct {
 	unregister chan *wsConnection
 
 	// Service Authenticator
-	serviceAuthenticator Authenticator
+	serviceAuthenticator authenticator
 }
 
 type wsCommand struct {
@@ -92,7 +92,7 @@ var websocketHub = wsHub{
 	execute:              make(chan *wsCommand),
 	register:             make(chan *wsConnection),
 	unregister:           make(chan *wsConnection),
-	serviceAuthenticator: &AllowAllAuthenticator{},
+	serviceAuthenticator: &allowAllAuthenticator{},
 }
 
 // Send the message to the specific connection
@@ -142,7 +142,7 @@ func (command *wsCommand) execute() {
 	case "authenticate":
 		connectionState := websocketHub.connections[command.source]
 		connectionState.ClientType = "service"
-		authenticated, err := websocketHub.serviceAuthenticator.Authenticate(nil)
+		authenticated, err := websocketHub.serviceAuthenticator.authenticate(nil)
 		if err != nil {
 			command.respondWithError(err.Error())
 		} else {
