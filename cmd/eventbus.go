@@ -28,11 +28,15 @@ func main() {
 
 	go fileserver.StartFileServer(fileServerHostAndPort, eventBusHostAndPort)
 
-	server := eventbus.NewServer(
+	server, err := eventbus.NewServer(
 		eventbus.HostAndPort(eventBusHostAndPort),
 		eventbus.CorsHostAndPort(fileServerHostAndPort),
 		eventbus.Services(file),
 	)
+	if err != nil {
+		log.Printf("Failed to start server: %s", err)
+		os.Exit(1)
+	}
 	server.Start()
 
 }

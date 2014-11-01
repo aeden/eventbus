@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/aeden/eventbus/middleware"
+	nsq "github.com/bitly/go-nsq"
 	"io"
 	"io/ioutil"
 	"log"
@@ -21,29 +22,63 @@ type Server struct {
 	corsHostAndPort string
 	eventStore      EventStore
 	servicesConfig  []ServiceConfig
+	nsqProducer     *nsq.Producer
+	nsqConsumer     *nsq.Consumer
+	nsqTopic        string
+	nsqChannel      string
 }
 
 // Configure a new server that is ready to be started.
-func NewServer(opts ...option) *Server {
-	server := &Server{
+func NewServer(opts ...option) (server *Server, err error) {
+	server = &Server{
 		httpServer: &http.Server{
 			ReadTimeout:  2 * time.Second,
 			WriteTimeout: 2 * time.Second,
 		},
-		eventStore:     NewNullEventStore(),
 		servicesConfig: []ServiceConfig{},
+		nsqTopic:       "events",
+		nsqChannel:     "all",
 	}
 
 	for _, opt := range opts {
 		opt(server)
 	}
 
+	// NSQ producer for sending messages
+	producerConfig := nsq.NewConfig()
+	err = producerConfig.Validate()
+	if err != nil {
+		log.Printf("Producer config is not valid: %s", err)
+		return
+	}
+	server.nsqProducer, err = nsq.NewProducer("localhost:4150", producerConfig)
+	if err != nil {
+		log.Printf("Error connecting to NSQ: %s", err)
+		return
+	}
+
+	// NSQ consumer for receiving messages
+	consumerConfig := nsq.NewConfig()
+	err = consumerConfig.Validate()
+	if err != nil {
+		log.Printf("Consumer config is not valid: %s", err)
+		return
+	}
+	server.nsqConsumer, err = nsq.NewConsumer(server.nsqTopic, server.nsqChannel, consumerConfig)
+	if err != nil {
+		log.Printf("Error creating consumer: %s", err)
+		return
+	}
+	server.nsqConsumer.AddHandler(nsq.HandlerFunc(nsqHandler))
+
+	// HTTP server for handling WebSocket connections
 	mux := http.NewServeMux()
-	mux.Handle("/", middleware.NewCorsHandler(server.corsHostAndPort, newEventBusRequestHandler(server.servicesConfig, server.eventStore)))
+	mux.Handle("/", middleware.NewCorsHandler(server.corsHostAndPort,
+		newEventBusRequestHandler(server.servicesConfig, server)))
 	mux.Handle("/ws", newWebSocketHandler(server.corsHostAndPort))
 	server.httpServer.Handler = mux
 
-	return server
+	return server, nil
 }
 
 /*
@@ -93,13 +128,13 @@ func Services(in io.Reader) option {
 
 type eventBusRequestHandler struct {
 	servicesConfig []ServiceConfig
-	eventStore     EventStore
+	server         *Server
 }
 
-func newEventBusRequestHandler(servicesConfig []ServiceConfig, eventStore EventStore) http.Handler {
+func newEventBusRequestHandler(servicesConfig []ServiceConfig, server *Server) http.Handler {
 	return &eventBusRequestHandler{
 		servicesConfig: servicesConfig,
-		eventStore:     eventStore,
+		server:         server,
 	}
 }
 
@@ -110,14 +145,6 @@ func (handler *eventBusRequestHandler) ServeHTTP(w http.ResponseWriter, r *http.
 		handler.handlePost(w, r)
 	} else if r.Method == "OPTIONS" {
 		w.WriteHeader(http.StatusOK)
-	} else if r.Method == "GET" {
-		json, err := json.Marshal(handler.eventStore.(*InMemoryEventStore).Events)
-		if err != nil {
-			log.Printf("Error marshaling events JSON: %s", err)
-			return
-		}
-		w.Write(json)
-
 	} else {
 		http.Error(w, "Not Found", http.StatusNotFound)
 	}
@@ -139,18 +166,15 @@ func (handler *eventBusRequestHandler) handlePost(w http.ResponseWriter, r *http
 			return
 		}
 
-		// The event is persisted here
-		err := handler.eventStore.WriteEvent(event)
+		// The event is published to NSQ here
+		err := handler.publishEvent(w, event)
 		if err != nil {
-			http.Error(w, "Failed to write event", http.StatusInternalServerError)
+			http.Error(w, fmt.Sprintf("Internal error: %s", err), http.StatusInternalServerError)
 			return
 		}
 
-		// If the event was successfully persisted, return OK
+		// If the event was successfully published, return OK
 		w.WriteHeader(http.StatusOK)
-
-		// Route event
-		go routeEvent(event)
 	}
 }
 
@@ -174,7 +198,25 @@ func (handler *eventBusRequestHandler) prepareAuthContext(w http.ResponseWriter,
 	return
 }
 
+func (handler *eventBusRequestHandler) publishEvent(w http.ResponseWriter, event *Event) (err error) {
+	eventJSON, err := json.Marshal(event)
+	if err != nil {
+		log.Printf("Error marshaling event JSON: %s", err)
+		return
+	}
+
+	log.Printf("Publishing event to %s", handler.server.nsqTopic)
+	handler.server.nsqProducer.Publish(handler.server.nsqTopic, eventJSON)
+
+	return
+}
+
 // routing and sending events
+
+func nsqHandler(message *nsq.Message) (err error) {
+	log.Printf("Message: %s", message.Body)
+	return
+}
 
 func routeEvent(event *Event) {
 	clientAccessToken := event.Context["identifier"]
